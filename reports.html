@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | SYSTEMS IT</title>
+    <title>รายงาน | SYSTEMS IT</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -93,44 +93,6 @@
             box-shadow: var(--soft-shadow);
             padding: 25px;
         }
-        .table thead th {
-            background: #fcfcfd;
-            border-bottom: 1px solid #f1f3f9;
-            color: var(--text-muted);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            padding: 15px;
-        }
-        .table tbody td {
-            padding: 18px 15px;
-            border-bottom: 1px solid #f1f3f9;
-            font-size: 0.95rem;
-            vertical-align: middle;
-        }
-        .badge-soft {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 500;
-            font-size: 0.85rem;
-            border: none;
-        }
-        .btn-action {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #f8f9fc;
-            color: var(--primary-blue);
-            border: none;
-            transition: 0.3s;
-        }
-        .btn-action:hover {
-            background: var(--primary-blue);
-            color: #fff;
-        }
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -174,7 +136,7 @@
         <span>SYSTEMS IT</span>
     </div>
     <nav>
-        <a href="index.html" class="nav-link-custom active">
+        <a href="index.html" class="nav-link-custom">
             <i class="bi bi-grid"></i>
             <span>Dashboard</span>
         </a>
@@ -186,7 +148,7 @@
             <i class="bi bi-eye"></i>
             <span>รายละเอียด SN</span>
         </a>
-        <a href="reports.html" class="nav-link-custom">
+        <a href="reports.html" class="nav-link-custom active">
             <i class="bi bi-bar-chart-line"></i>
             <span>รายงาน</span>
         </a>
@@ -205,8 +167,8 @@
 
     <div class="page-header">
         <div class="header-title">
-            <h4>Dashboard</h4>
-            <p>ภาพรวมสถานะวัสดุและอุปกรณ์</p>
+            <h4>รายงาน</h4>
+            <p>สรุปและวิเคราะห์ข้อมูลวัสดุและอุปกรณ์</p>
         </div>
         <div>
             <button class="btn btn-outline-primary btn-sm me-2" id="filterBtn"><i class="bi bi-filter"></i> กรอง</button>
@@ -215,27 +177,45 @@
     </div>
 
     <div class="content-card">
-        <h5 class="card-title mb-4">สรุปสถานะวัสดุ</h5>
-        <div class="row mb-4" id="summaryCards">
-            <!-- Cards will be injected by JS -->
+        <h5 class="card-title mb-4">รายงานสรุป</h5>
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            หน้ารายงานนี้สามารถออกแบบเพิ่มเติมตามความต้องการได้ โดยสามารถแสดงกราฟ สถิติ หรือข้อมูลสรุปต่างๆ ได้
         </div>
-
-        <div class="table-responsive">
-            <table class="table align-middle mb-0" id="recentTable">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>ชื่อวัสดุ</th>
-                        <th>จำนวนทั้งหมด</th>
-                        <th>คงเหลือ</th>
-                        <th>สถานะ</th>
-                        <th>การกระทำ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rows will be injected by JS -->
-                </tbody>
-            </table>
+        <!-- Placeholder for charts or reports -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวนวัสดุทั้งหมด</h5>
+                        <p class="display-4" id="totalItems">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน SN คงเหลือ</h5>
+                        <p class="display-4" id="availableSN">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน SN ถูกยืมออก</h5>
+                        <p class="display-4" id="withdrawnSN">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน SN ชำรุด/ซ่อม</h5>
+                        <p class="display-4" id="repairSN">0</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -256,31 +236,23 @@
         });
     }
 
-    // Sample data for dashboard
+    // Sample stats (could be loaded from localStorage)
     let stats = {
-        total_items: 124,
-        total_sn: 256,
-        available_sn: 198,
-        withdrawn_sn: 48,
-        repair_sn: 10
+        total_items: 0,
+        total_sn: 0,
+        available_sn: 0,
+        withdrawn_sn: 0,
+        repair_sn: 0
     };
-    let recentItems = [
-        { id: 1, item_name: 'คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex', category: 'อุปกรณ์ไอที', total_sn: 15, available_sn: 12 },
-        { id: 2, item_name: 'แล็ปท็อป Lenovo ThinkPad', category: 'อุปกรณ์ไอที', total_sn: 20, available_sn: 15 },
-        { id: 3, item_name: 'เครื่องพิมพ์ HP LaserJet', category: 'อุปกรณ์สำนักงาน', total_sn: 8, available_sn: 5 },
-        { id: 4, item_name: 'โปรเจคเตอร์ Epson', category: 'อุปกรณ์ประชุม', total_sn: 5, available_sn: 4 },
-        { id: 5, item_name: 'สวิตช์เครือข่าย Cisco', category: 'อุปกรณ์เครือข่าย', total_sn: 12, available_sn: 10 }
-    ];
 
-    // Load from localStorage if exists
-    const storedItems = localStorage.getItem('dashboardItems');
+    // Load from localStorage if exists (from inventory)
+    const storedItems = localStorage.getItem('inventoryItems');
     if (storedItems) {
         try {
-            recentItems = JSON.parse(storedItems);
-            // Recalculate stats based on items
-            stats.total_items = recentItems.length;
-            stats.total_sn = recentItems.reduce((sum, item) => sum + (item.total_sn || 0), 0);
-            stats.available_sn = recentItems.reduce((sum, item) => sum + (item.available_sn || 0), 0);
+            const items = JSON.parse(storedItems);
+            stats.total_items = items.length;
+            stats.total_sn = items.reduce((sum, item) => sum + (item.total || 0), 0);
+            stats.available_sn = items.reduce((sum, item) => sum + (item.available || 0), 0);
             stats.withdrawn_sn = stats.total_sn - stats.available_sn; // simple assumption
             stats.repair_sn = 0; // placeholder
         } catch (e) {
@@ -288,68 +260,13 @@
         }
     }
 
-    // Render summary cards
-    function renderSummaryCards() {
-        const summaryContainer = document.getElementById('summaryCards');
-        summaryContainer.innerHTML = '';
-        const cards = [
-            { label: 'จำนวนวัสดุทั้งหมด', value: stats.total_items, color: 'primary', icon: 'bi bi-box-seam' },
-            { label: 'จำนวน SN ทั้งหมด', value: stats.total_sn, color: 'info', icon: 'bi bi-cpu' },
-            { label: 'คงเหลือ (SN)', value: stats.available_sn, color: 'success', icon: 'bi bi-check-lg' },
-            { label: 'ถูกยืมออก', value: stats.withdrawn_sn, color: 'warning', icon: 'bi bi-arrow-right-circle' },
-            { label: 'ชำรุด/ซ่อม', value: stats.repair_sn, color: 'danger', icon: 'bi bi-tools' }
-        ];
-        cards.forEach(card => {
-            const col = document.createElement('div');
-            col.className = 'col-md-2'; // 5 cards -> 2 col each on md, will wrap
-            col.innerHTML = `
-                <div class="card text-white bg-${card.color} h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-0">${card.label}</h6>
-                                <h3 class="mb-0">${card.value}</h3>
-                            </div>
-                            <div class="icon-large">
-                                <i class="${card.icon}"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            summaryContainer.appendChild(col);
-        });
-    }
+    // Update UI
+    document.getElementById('totalItems').textContent = stats.total_items;
+    document.getElementById('availableSN').textContent = stats.available_sn;
+    document.getElementById('withdrawnSN').textContent = stats.withdrawn_sn;
+    document.getElementById('repairSN').textContent = stats.repair_sn;
 
-    // Render recent items table
-    function renderRecentTable() {
-        const tbody = document.querySelector('#recentTable tbody');
-        tbody.innerHTML = '';
-        if (recentItems.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center">ยังไม่มีข้อมูลวัสดุ</td></tr>`;
-        } else {
-            recentItems.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${item.item_name}</td>
-                    <td>${item.total_sn}</td>
-                    <td>${item.available_sn}</td>
-                    <td><span class="badge ${item.available_sn === 0 ? 'bg-danger' : item.available_sn < item.total_sn ? 'bg-warning' : 'bg-success'}">${item.available_sn === 0 ? 'หมด' : item.available_sn < item.total_sn ? 'บางส่วน' : 'ปกติ'}</span></td>
-                    <td>
-                        <a href="details.html?id=${item.id}" class="btn-action" title="ดูรายละเอียด SN"><i class="bi bi-eye"></i></a>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-    }
-
-    // Initialize
-    renderSummaryCards();
-    renderRecentTable();
-
-    // Add item button
+    // Add item button (same as other pages)
     document.getElementById('addItemBtn').addEventListener('click', () => {
         Swal.fire({
             title: 'เพิ่มรายการวัสดุใหม่',
@@ -360,36 +277,38 @@
                 `<input id="swal-input4" type="number" class="swal2-input" placeholder="จำนวนคงเหลือ" min="0">`,
             focusConfirm: false,
             preConfirm: () => {
-                const itemName = document.getElementById('swal-input1').value.trim();
+                const name = document.getElementById('swal-input1').value.trim();
                 const category = document.getElementById('swal-input2').value.trim();
                 const total = parseInt(document.getElementById('swal-input3').value) || 0;
                 const available = parseInt(document.getElementById('swal-input4').value) || 0;
-                if (!itemName || !category || isNaN(total) || isNaN(available) || available > total) {
+                if (!name || !category || isNaN(total) || isNaN(available) || available > total) {
                     Swal.showValidationMessage(`กรุณากรอกข้อมูลให้ถูกต้อง`);
                     return false;
                 }
-                return { itemName, category, total, available };
+                return { name, category, total, available };
             }
         }).then((result) => {
             if (result.isConfirmed) {
                 const newItem = {
                     id: Date.now(),
-                    item_name: result.value.itemName,
+                    name: result.value.name,
                     category: result.value.category,
-                    total_sn: result.value.total,
-                    available_sn: result.value.available
+                    total: result.value.total,
+                    available: result.value.available
                 };
-                recentItems.push(newItem);
-                // Update stats
-                stats.total_items = recentItems.length;
-                stats.total_sn = recentItems.reduce((sum, item) => sum + item.total_sn, 0);
-                stats.available_sn = recentItems.reduce((sum, item) => sum + item.available_sn, 0);
+                const items = localStorage.getItem('inventoryItems') ? JSON.parse(localStorage.getItem('inventoryItems')) : [];
+                items.push(newItem);
+                localStorage.setItem('inventoryItems', JSON.stringify(items));
+                // Update stats (simple)
+                stats.total_items = items.length;
+                stats.total_sn = items.reduce((sum, item) => sum + item.total, 0);
+                stats.available_sn = items.reduce((sum, item) => sum + item.available, 0);
                 stats.withdrawn_sn = stats.total_sn - stats.available_sn;
-                // Save to localStorage
-                localStorage.setItem('dashboardItems', JSON.stringify(recentItems));
-                // Re-render
-                renderSummaryCards();
-                renderRecentTable();
+                // Update UI
+                document.getElementById('totalItems').textContent = stats.total_items;
+                document.getElementById('availableSN').textContent = stats.available_sn;
+                document.getElementById('withdrawnSN').textContent = stats.withdrawn_sn;
+                document.getElementById('repairSN').textContent = stats.repair_sn;
                 Swal.fire('เพิ่มสำเร็จ!', 'รายการวัสดุถูกเพิ่มเรียบร้อยแล้ว', 'success');
             }
         });

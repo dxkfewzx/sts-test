@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
@@ -178,7 +179,7 @@
             <i class="bi bi-eye"></i>
             <span>รายละเอียด SN</span>
         </a>
-        <a href="#" class="nav-link-custom">
+        <a href="reports.html" class="nav-link-custom">
             <i class="bi bi-bar-chart-line"></i>
             <span>รายงาน</span>
         </a>
@@ -201,8 +202,8 @@
             <p>จัดการวัสดุและอุปกรณ์ทั้งหมด</p>
         </div>
         <div>
-            <button class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-filter"></i> กรอง</button>
-            <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
+            <button class="btn btn-outline-primary btn-sm me-2" id="filterBtn"><i class="bi bi-filter"></i> กรอง</button>
+            <button class="btn btn-primary btn-sm" id="addItemBtn"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
         </div>
     </div>
 
@@ -210,12 +211,12 @@
         <div class="table-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">รายการวัสดุทั้งหมด</h5>
-                <span class="badge bg-primary">พบ 3 รายการ</span>
+                <span class="badge bg-primary" id="totalItemsBadge">พบ 0 รายการ</span>
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table align-middle mb-0">
+            <table class="table align-middle mb-0" id="inventoryTable">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -228,45 +229,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex</td>
-                        <td>อุปกรณ์ไอที</td>
-                        <td>15</td>
-                        <td>12</td>
-                        <td><span class="badge bg-success">ปกติ</span></td>
-                        <td>
-                            <a href="details.html" class="btn-action" title="ดูรายละเอียด"><i class="bi bi-eye"></i></a>
-                            <a href="#" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
-                            <a href="#" class="btn-action text-danger" title="ลบ"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>แล็ปท็อป Lenovo ThinkPad</td>
-                        <td>อุปกรณ์ไอที</td>
-                        <td>20</td>
-                        <td>15</td>
-                        <td><span class="badge bg-success">ปกติ</span></td>
-                        <td>
-                            <a href="details.html" class="btn-action" title="ดูรายละเอียด"><i class="bi bi-eye"></i></a>
-                            <a href="#" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
-                            <a href="#" class="btn-action text-danger" title="ลบ"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>เครื่องพิมพ์ HP LaserJet</td>
-                        <td>อุปกรณ์สำนักงาน</td>
-                        <td>8</td>
-                        <td>5</td>
-                        <td><span class="badge bg-warning">ต้องเติมหมึก</span></td>
-                        <td>
-                            <a href="details.html" class="btn-action" title="ดูรายละเอียด"><i class="bi bi-eye"></i></a>
-                            <a href="#" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
-                            <a href="#" class="btn-action text-danger" title="ลบ"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
+                    <!-- Rows will be injected by JS -->
                 </tbody>
             </table>
         </div>
@@ -288,6 +251,197 @@
             sidebar.classList.toggle('active');
         });
     }
+
+    // Key for localStorage
+    const STORAGE_KEY = 'inventoryItems';
+
+    // Load items from localStorage or initialize with sample data
+    function loadItems() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse inventory items', e);
+                // Fallback to sample data
+            }
+        }
+        // Sample data
+        return [
+            { id: 1, name: 'คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex', category: 'อุปกรณ์ไอที', total: 15, available: 12 },
+            { id: 2, name: 'แล็ปท็อป Lenovo ThinkPad', category: 'อุปกรณ์ไอที', total: 20, available: 15 },
+            { id: 3, name: 'เครื่องพิมพ์ HP LaserJet', category: 'อุปกรณ์สำนักงาน', total: 8, available: 5 }
+        ];
+    }
+
+    // Save items to localStorage
+    function saveItems(items) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        // Update badge count
+        document.getElementById('totalItemsBadge').textContent = `พบ ${items.length} รายการ`;
+        // Dispatch an event so other tabs can listen if needed
+        window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY, newValue: JSON.stringify(items) }));
+    }
+
+    // Render the table
+    function renderTable() {
+        const items = loadItems();
+        const tbody = document.querySelector('#inventoryTable tbody');
+        tbody.innerHTML = '';
+
+        if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุ</td></tr>`;
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const statusText = item.available === 0 ? 'หมด' : item.available < item.total ? 'บางส่วน' : 'ปกติ';
+            const statusClass = item.available === 0 ? 'bg-danger' : item.available < item.total ? 'bg-warning' : 'bg-success';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td>${item.category}</td>
+                <td>${item.total}</td>
+                <td>${item.available}</td>
+                <td><span class="badge-soft ${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="btn-action btn-view" data-id="${item.id}" title="ดูรายละเอียด"><i class="bi bi-eye"></i></button>
+                    <button class="btn-action btn-edit text-warning" data-id="${item.id}" title="แก้ไข"><i class="bi bi-pencil"></i></button>
+                    <button class="btn-action btn-delete text-danger" data-id="${item.id}" title="ลบ"><i class="bi bi-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Add event listeners for buttons
+        document.querySelectorAll('.btn-view').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                const items = loadItems();
+                const item = items.find(i => i.id === id);
+                if (item) {
+                    // Pass id via query parameter to details.html
+                    window.location.href = `details.html?id=${id}`;
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                const items = loadItems();
+                const item = items.find(i => i.id === id);
+                if (item) {
+                    openEditForm(item);
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(e.currentTarget.getAttribute('data-id'));
+                Swal.fire({
+                    title: 'ยืนยันการลบ?',
+                    text: "คุณต้องการลบรายการนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'ใช่, ลบเลย!',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let items = loadItems();
+                        items = items.filter(i => i.id !== id);
+                        saveItems(items);
+                        renderTable();
+                        Swal.fire('ลบสำเร็จ!', 'รายการวัสดุถูกลบเรียบร้อยแล้ว', 'success');
+                    }
+                });
+            });
+        });
+    }
+
+    // Open add form
+    function openAddForm() {
+        Swal.fire({
+            title: 'เพิ่มรายการวัสดุใหม่',
+            html:
+                `<input id="swal-input1" class="swal2-input" placeholder="ชื่อวัสดุ">` +
+                `<input id="swal-input2" class="swal2-input" placeholder="ประเภท">` +
+                `<input id="swal-input3" type="number" class="swal2-input" placeholder="จำนวนทั้งหมด" min="0">` +
+                `<input id="swal-input4" type="number" class="swal2-input" placeholder="จำนวนคงเหลือ" min="0">`,
+            focusConfirm: false,
+            preConfirm: () => {
+                const name = document.getElementById('swal-input1').value.trim();
+                const category = document.getElementById('swal-input2').value.trim();
+                const total = parseInt(document.getElementById('swal-input3').value) || 0;
+                const available = parseInt(document.getElementById('swal-input4').value) || 0;
+                if (!name || !category || isNaN(total) || isNaN(available) || available > total) {
+                    Swal.showValidationMessage(`กรุณากรอกข้อมูลให้ถูกต้อง`);
+                    return false;
+                }
+                return { name, category, total, available };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const newItem = {
+                    id: Date.now(),
+                    name: result.value.name,
+                    category: result.value.category,
+                    total: result.value.total,
+                    available: result.value.available
+                };
+                const items = loadItems();
+                items.push(newItem);
+                saveItems(items);
+                renderTable();
+                Swal.fire('เพิ่มสำเร็จ!', 'รายการวัสดุถูกเพิ่มเรียบร้อยแล้ว', 'success');
+            }
+        });
+    }
+
+    // Open edit form (prefilled)
+    function openEditForm(item) {
+        Swal.fire({
+            title: 'แก้ไขรายการวัสดุ',
+            html:
+                `<input id="swal-input1" class="swal2-input" value="${item.name}" placeholder="ชื่อวัสดุ">` +
+                `<input id="swal-input2" class="swal2-input" value="${item.category}" placeholder="ประเภท">` +
+                `<input id="swal-input3" type="number" class="swal2-input" value="${item.total}" placeholder="จำนวนทั้งหมด" min="0">` +
+                `<input id="swal-input4" type="number" class="swal2-input" value="${item.available}" placeholder="จำนวนคงเหลือ" min="0">`,
+            focusConfirm: false,
+            preConfirm: () => {
+                const name = document.getElementById('swal-input1').value.trim();
+                const category = document.getElementById('swal-input2').value.trim();
+                const total = parseInt(document.getElementById('swal-input3').value) || 0;
+                const available = parseInt(document.getElementById('swal-input4').value) || 0;
+                if (!name || !category || isNaN(total) || isNaN(available) || available > total) {
+                    Swal.showValidationMessage(`กรุณากรอกข้อมูลให้ถูกต้อง`);
+                    return false;
+                }
+                return { name, category, total, available };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const items = loadItems();
+                const index = items.findIndex(i => i.id === item.id);
+                if (index !== -1) {
+                    items[index] = { ...items[index], ...result.value, id: item.id };
+                    saveItems(items);
+                    renderTable();
+                    Swal.fire('แก้ไขสำเร็จ!', 'รายการวัสดุถูกแก้ไขเรียบร้อยแล้ว', 'success');
+                }
+            }
+        });
+    }
+
+    // Event listeners
+    document.getElementById('addItemBtn').addEventListener('click', openAddForm);
+
+    // Initial render
+    renderTable();
 </script>
 </body>
 </html>
