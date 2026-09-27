@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>รายการวัสดุ | SYSTEMS IT</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -166,31 +166,25 @@
         <span>SYSTEMS IT</span>
     </div>
     <nav>
-        <a href="{{ url_for('index') }}" class="nav-link-custom {% if request.endpoint == 'index' %}active{% endif %}">
+        <a href="index.html" class="nav-link-custom">
             <i class="bi bi-grid"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{{ url_for('inventory_list') }}" class="nav-link-custom active">
+        <a href="inventory_list.html" class="nav-link-custom active">
             <i class="bi bi-box-seam"></i>
             <span>รายการวัสดุ</span>
         </a>
-        <a href="#" class="nav-link-custom">
-            <i class="bi bi-plus-lg"></i>
-            <span>เพิ่มวัสดุใหม่</span>
+        <a href="details.html" class="nav-link-custom">
+            <i class="bi bi-eye"></i>
+            <span>รายละเอียด SN</span>
         </a>
         <a href="#" class="nav-link-custom">
             <i class="bi bi-bar-chart-line"></i>
             <span>รายงาน</span>
         </a>
-        {% if current_user.is_admin %}
-        <a href="{{ url_for('add_user') }}" class="nav-link-custom">
-            <i class="bi bi-person-plus"></i>
-            <span>เพิ่มผู้ใช้</span>
-        </a>
-        {% endif %}
-        <a href="{{ url_for('logout') }}" class="nav-link-custom">
-            <i class="bi bi-box-arrow-left"></i>
-            <span>ออกจากระบบ</span>
+        <a href="#" class="nav-link-custom">
+            <i class="bi bi-gear"></i>
+            <span>ตั้งค่า</span>
         </a>
     </nav>
 </div>
@@ -208,7 +202,7 @@
         </div>
         <div>
             <button class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-filter"></i> กรอง</button>
-            <button class="btn btn-primary btn-sm" id="addItemBtn"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
+            <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
         </div>
     </div>
 
@@ -216,49 +210,63 @@
         <div class="table-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">รายการวัสดุทั้งหมด</h5>
-                <span class="badge bg-primary" id="itemCount">พบ {{ items|length }} รายการ</span>
+                <span class="badge bg-primary">พบ 3 รายการ</span>
             </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table align-middle mb-0" id="inventoryTable">
+            <table class="table align-middle mb-0">
                 <thead>
                     <tr>
                         <th>#</th>
                         <th>ชื่อวัสดุ</th>
                         <th>ประเภท</th>
-                        <th>จำนวน SN ทั้งหมด</th>
+                        <th>จำนวนทั้งหมด</th>
                         <th>คงเหลือ</th>
-                        <th>สถานะรวม</th>
+                        <th>สถานะ</th>
                         <th>การกระทำ</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in items %}
                     <tr>
-                        <td>{{ loop.index }}</td>
-                        <td>{{ item.item_name }}</td>
-                        <td>{{ item.category or '-' }}</td>
-                        <td>{{ item.total_sn }}</td>
-                        <td>{{ item.available_sn }}</td>
+                        <td>1</td>
+                        <td>คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex</td>
+                        <td>อุปกรณ์ไอที</td>
+                        <td>15</td>
+                        <td>12</td>
+                        <td><span class="badge bg-success">ปกติ</span></td>
                         <td>
-                            {% if item.available_sn == 0 %}
-                            <span class="badge bg-danger">หมด</span>
-                            {% elif item.available_sn < item.total_sn %}
-                            <span class="badge bg-warning">บางส่วน</span>
-                            {% else %}
-                            <span class="badge bg-success">ปกติ</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('details', item_id=item.id) }}" class="btn-action" title="ดูรายละเอียด SN"><i class="bi bi-eye"></i></a>
-                            {% if current_user.is_admin %}
-                            <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
-                            <a href="{{ url_for('delete_item', item_id=item.id) }}" class="btn-action text-danger" title="ลบ" onclick="return confirm('คุณต้องการลบวัสดุนี้และ SN ทั้งหมดที่เกี่ยวข้องหรือไม่?')"><i class="bi bi-trash"></i></a>
-                            {% endif %}
+                            <a href="details.html" class="btn-action" title="ดูรายละเอียด"><i class="bi bi-eye"></i></a>
+                            <a href="#" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
+                            <a href="#" class="btn-action text-danger" title="ลบ"><i class="bi bi-trash"></i></a>
                         </td>
                     </tr>
-                    {% endfor %}
+                    <tr>
+                        <td>2</td>
+                        <td>แล็ปท็อป Lenovo ThinkPad</td>
+                        <td>อุปกรณ์ไอที</td>
+                        <td>20</td>
+                        <td>15</td>
+                        <td><span class="badge bg-success">ปกติ</span></td>
+                        <td>
+                            <a href="details.html" class="btn-action" title="ดูรายละเอียด"><i class="bi bi-eye"></i></a>
+                            <a href="#" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
+                            <a href="#" class="btn-action text-danger" title="ลบ"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>เครื่องพิมพ์ HP LaserJet</td>
+                        <td>อุปกรณ์สำนักงาน</td>
+                        <td>8</td>
+                        <td>5</td>
+                        <td><span class="badge bg-warning">ต้องเติมหมึก</span></td>
+                        <td>
+                            <a href="details.html" class="btn-action" title="ดูรายละเอียด"><i class="bi bi-eye"></i></a>
+                            <a href="#" class="btn-action text-warning" title="แก้ไข"><i class="bi bi-pencil"></i></a>
+                            <a href="#" class="btn-action text-danger" title="ลบ"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -280,10 +288,6 @@
             sidebar.classList.toggle('active');
         });
     }
-
-    document.getElementById('addItemBtn').addEventListener('click', function() {
-        window.location.href = "{{ url_for('add_item') }}";
-    });
 </script>
 </body>
 </html>
