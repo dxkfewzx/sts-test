@@ -461,6 +461,14 @@ function confirmDeleteRepair(repairId) {
 // Initial load
 populateRepairTable();
 updateStatusCounts();
+
+// Listen for storage events to update when repairs change from other tabs/windows
+window.addEventListener('storage', function(e) {
+    if (e.key === REPAIR_STORAGE_KEY) {
+        populateRepairTable();
+        updateStatusCounts();
+    }
+});
 </script>
 </body>
 </html>

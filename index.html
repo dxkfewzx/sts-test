@@ -294,21 +294,78 @@
 </script>
 
 <script>
-    // Handle repair button click - show SweetAlert2 confirmation then redirect to repair_details.html
+    // Storage key for repairs (same as repair_details.html)
+    const REPAIR_STORAGE_KEY = 'repairRecords';
+
+    // Load repairs from localStorage
+    function loadRepairs() {
+        const stored = localStorage.getItem(REPAIR_STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse repair records', e);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    // Save repairs to localStorage
+    function saveRepairs(repairs) {
+        localStorage.setItem(REPAIR_STORAGE_KEY, JSON.stringify(repairs));
+        // Update the status counts (if needed)
+        updateRepairStatusCounts();
+        // Dispatch an event so other tabs can listen if needed
+        window.dispatchEvent(new StorageEvent('storage', { key: REPAIR_STORAGE_KEY, newValue: JSON.stringify(repairs) }));
+    }
+
+    // Update the status count badges (called from repair_details.html, but we can define a no-op if not present)
+    function updateRepairStatusCounts() {
+        // This function is defined in repair_details.html; if we are not on that page, it's okay if undefined.
+        // We'll try to call it if exists.
+        if (typeof updateStatusCounts === 'function') {
+            updateStatusCounts();
+        }
+    }
+
+    // Handle repair button click - show SweetAlert2 form for repair submission
     document.getElementById('repairBtn').addEventListener('click', function() {
         Swal.fire({
-            title: 'ยืนยันการแจ้งซ่อม?',
-            text: "คุณต้องการไปยังหน้าแจ้งซ่อมใช่หรือไม่?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'ใช่, ไปเลย!',
-            cancelButtonText: 'ยกเลิก'
+            title: 'แจ้งซ่อมอุปกรณ์',
+            html:
+                '<input id="swal-input1" class="swal2-input" placeholder="อุปกรณ์ / SN">' +
+                '<input id="swal-input2" class="swal2-input" placeholder="อาการเสีย">',
+            focusConfirm: false,
+            preConfirm: () => {
+                const deviceName = document.getElementById('swal-input1').value.trim();
+                const symptom = document.getElementById('swal-input2').value.trim();
+                if (!deviceName || !symptom) {
+                    Swal.showValidationError('กรุณากรอกข้อมูลให้ครบถ้วน');
+                    return false;
+                }
+                return { deviceName: deviceName, symptom: symptom };
+            }
         }).then((result) => {
             if (result.isConfirmed) {
-                // Redirect to repair_details.html
-                window.location.href = 'repair_details.html';
+                const { deviceName, symptom } = result.value;
+                const repairs = loadRepairs();
+                const newRepair = {
+                    id: Date.now(),
+                    device_name: deviceName,
+                    symptom: symptom,
+                    status: 'Pending',
+                    created_at: new Date().toISOString()
+                };
+                const updatedRepairs = [...repairs, newRepair];
+                saveRepairs(updatedRepairs);
+                Swal.fire({
+                    title: 'บันทึกสำเร็จ!',
+                    text: 'เพิ่มเรื่องซ่อมใหม่เรียบร้อยแล้ว',
+                    icon: 'success',
+                    confirmButtonText: 'ตกลง'
+                });
+                // Optionally, we could redirect to repair_details.html to see the list, but per request we stay on index.html.
             }
         });
     });
