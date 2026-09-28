@@ -316,8 +316,7 @@
         localStorage.setItem(REPAIR_STORAGE_KEY, JSON.stringify(repairs));
         // Update the status counts (if needed)
         updateRepairStatusCounts();
-        // Dispatch an event so other tabs can listen if needed
-        window.dispatchEvent(new StorageEvent('storage', { key: REPAIR_STORAGE_KEY, newValue: JSON.stringify(repairs) }));
+        // Note: No need to dispatch custom event; the native storage event will fire on other tabs/windows
     }
 
     // Update the status count badges (called from repair_details.html, but we can define a no-op if not present)
@@ -332,7 +331,7 @@
     // Handle repair button click - show SweetAlert2 form for repair submission
     document.getElementById('repairBtn').addEventListener('click', function() {
         Swal.fire({
-            title: 'แจ้งซ่อมอุปกรณ์',
+            title: '<i class="bi bi-wrench-adjustable me-2"></i>แจ้งซ่อมอุปกรณ์',
             html:
                 '<input id="swal-input1" class="swal2-input" placeholder="อุปกรณ์ / SN">' +
                 '<input id="swal-input2" class="swal2-input" placeholder="อาการเสีย">',
@@ -341,10 +340,31 @@
                 const deviceName = document.getElementById('swal-input1').value.trim();
                 const symptom = document.getElementById('swal-input2').value.trim();
                 if (!deviceName || !symptom) {
-                    Swal.showValidationError('กรุณากรอกข้อมูลให้ครบถ้วน');
+                    Swal.showValidationError({
+                        text: 'กรุณากรอกข้อมูลให้ครบถ้วน',
+                        confirmButtonText: 'ตกลง',
+                        confirmButtonColor: '#dc3545'
+                    });
                     return false;
                 }
                 return { deviceName: deviceName, symptom: symptom };
+            },
+            showCancelButton: true,
+            confirmButtonText: '<i class="bi bi-save me-1"></i>บันทึก',
+            cancelButtonText: '<i class="bi bi-x me-1"></i>ยกเลิก',
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#dc3545',
+            reverseButtons: true,
+            customClass: {
+                popup: 'swal2-popup',
+                header: 'swal2-header',
+                title: 'swal2-title',
+                htmlContainer: 'swal2-html-container',
+                input: 'swal2-input',
+                inputLabel: 'swal2-input-label',
+                actions: 'swal2-actions',
+                confirmButton: 'swal2-confirm-button',
+                cancelButton: 'swal2-cancel-button'
             }
         }).then((result) => {
             if (result.isConfirmed) {
@@ -360,12 +380,12 @@
                 const updatedRepairs = [...repairs, newRepair];
                 saveRepairs(updatedRepairs);
                 Swal.fire({
-                    title: 'บันทึกสำเร็จ!',
+                    title: '<i class="bi bi-check-circle me-2"></i>บันทึกสำเร็จ!',
                     text: 'เพิ่มเรื่องซ่อมใหม่เรียบร้อยแล้ว',
                     icon: 'success',
-                    confirmButtonText: 'ตกลง'
+                    timer: 1500,
+                    showConfirmButton: false
                 });
-                // Optionally, we could redirect to repair_details.html to see the list, but per request we stay on index.html.
             }
         });
     });
