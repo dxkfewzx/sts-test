@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงาน | SYSTEMS IT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-blue: #4e73df;
+            --sidebar-bg: #ffffff;
+            --main-bg: #f4f7fe;
+            --text-dark: #2e384d;
+            --text-muted: #8492a6;
+            --soft-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        }
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-dark);
+            margin: 0;
+        }
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.03);
+            z-index: 1000;
+            transition: 0.3s;
+        }
+        .sidebar-brand {
+            padding: 2rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .nav-link-custom {
+            padding: 14px 25px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: 0.3s;
+            margin: 4px 15px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .nav-link-custom i { font-size: 1.2rem; margin-right: 15px; }
+        .nav-link-custom:hover { background: #f8f9fc; color: var(--primary-blue); }
+        .nav-link-custom.active {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(78, 115, 223, 0.2);
+        }
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+            transition: 0.3s;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .header-title h4 { font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0; }
+        .content-card {
+            background: #fff;
+            border-radius: 24px;
+            border: none;
+            box-shadow: var(--soft-shadow);
+            padding: 25px;
+        }
+        .table thead th {
+            background: #fcfcfd;
+            border-bottom: 1px solid #f1f3f9;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 15px;
+        }
+        .table tbody td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #f1f3f9;
+            vertical-align: middle;
+        }
+        .badge-soft {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border: none;
+        }
+        .btn-action {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fc;
+            color: var(--primary-blue);
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-action:hover {
+            background: var(--primary-blue);
+            color: #fff;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+                padding-top: 80px;
+            }
+            .mobile-header {
+                display: flex !important;
+            }
+        }
+        .mobile-header {
+            display: none;
+            background: #fff;
+            padding: 15px 20px;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+<div class="mobile-header">
+    <span class="fw-bold text-primary">SYSTEMS IT</span>
+    <button class="btn btn-light" id="sidebarToggle"><i class="bi bi-list fs-4"></i></button>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-speedometer2"></i>
+        <span>SYSTEMS IT</span>
+    </div>
+    <nav>
+        <a href="index.html" class="nav-link-custom">
+            <i class="bi bi-grid"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="inventory_list.html" class="nav-link-custom active">
+            <i class="bi bi-box-seam"></i>
+            <span>รายการวัสดุ</span>
+        </a>
+        <a href="details.html" class="nav-link-custom">
+            <i class="bi bi-eye"></i>
+            <span>รายละเอียด SN</span>
+        </a>
+        <a href="repair_details.html" class="nav-link-custom">
+            <i class="bi bi-wrench-adjustable-circle-fill"></i>
+            <span>ประวัติแจ้งซ่อม</span>
+        </a>
+    </nav>
+</div>
+
+<div class="main-content">
+    <div class="mobile-header">
+        <span class="fw-bold text-primary">SYSTEMS IT</span>
+        <button class="btn btn-light" id="sidebarToggleMobile"><i class="bi bi-list fs-4"></i></button>
+    </div>
+
+    <div class="page-header">
+        <div class="header-title">
+            <h4>รายงานสรุป</h4>
+            <p>สถิติและข้อมูลสรุประบบคลังอุปกรณ์</p>
+        </div>
+        <div>
+            <button class="btn btn-outline-primary btn-sm me-2" id="refreshBtn"><i class="bi bi-arrow-clockwise"></i> รีเฟรช</button>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card text-bg-primary border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวนรายการวัสดุทั้งหมด</h5>
+                        <p class="display-6" id="totalItemsCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-success border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน Serial Number ทั้งหมด</h5>
+                        <p class="display-6" id="totalSNCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-warning border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน Serial Number คงเหลือ (Available)</h5>
+                        <p class="display-6" id="availableSNCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-danger border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน Serial Number ที่ถูกเบิกออก (Withdrawn)</h5>
+                        <p class="display-6" id="withdrawnSNCount">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card text-bg-info border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวน Serial Number อยู่ในระหว่างซ่อม (Repair)</h5>
+                        <p class="display-6" id="repairSNCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-secondary border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">จำนวนเรื่องแจ้งซ่อมทั้งหมด</h5>
+                        <p class="display-6" id="totalRepairCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-light border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">เรื่องแจ้งซ่อมสถานะรอรับ (Pending)</h5>
+                        <p class="display-6" id="pendingRepairCount">0</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-dark border-0 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">เรื่องแจ้งซ่อมสถานะเสร็จแล้ว (Fixed)</h5>
+                        <p class="display-6" id="fixedRepairCount">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0">
+                    <div class="card-header">
+                        <h5 class="card-title">ตารางสรุปตามประเภทวัสดุ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle" id="summaryTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>ชื่อวัสดุ</th>
+                                        <th>ประเภท</th>
+                                        <th>จำนวนทั้งหมด</th>
+                                        <th>คงเหลือ</th>
+                                        <th>ถูกเบิกออก</th>
+                                        <th>อยู่ในซ่อม</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
+    const sidebar = document.getElementById('sidebar');
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+    if (sidebarToggleMobile) {
+        sidebarToggleMobile.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+
+    // Storage keys
+    const ITEMS_STORAGE_KEY = 'inventoryItems';
+    const SN_STORAGE_KEY = 'snRecords';
+    const REPAIR_STORAGE_KEY = 'repairRecords';
+
+    // Load data from localStorage
+    function loadItems() {
+        const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse inventory items', e);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    function loadSNRecords() {
+        const stored = localStorage.getItem(SN_STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse SN records', e);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    function loadRepairs() {
+        const stored = localStorage.getItem(REPAIR_STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse repair records', e);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    // Update the statistics cards
+    function updateStatistics() {
+        const items = loadItems();
+        const snRecords = loadSNRecords();
+        const repairs = loadRepairs();
+
+        // Total items
+        document.getElementById('totalItemsCount').textContent = items.length;
+
+        // Total SNs
+        const totalSN = snRecords.length;
+        document.getElementById('totalSNCount').textContent = totalSN;
+
+        // Available SNs (status = 'Available')
+        const availableSN = snRecords.filter(sn => sn.status === 'Available').length;
+        document.getElementById('availableSNCount').textContent = availableSN;
+
+        // Withdrawn SNs (status = 'Withdrawn')
+        const withdrawnSN = snRecords.filter(sn => sn.status === 'Withdrawn').length;
+        document.getElementById('withdrawnSNCount').textContent = withdrawnSN;
+
+        // Repair SNs (status = 'Repair')
+        const repairSN = snRecords.filter(sn => sn.status === 'Repair').length;
+        document.getElementById('repairSNCount').textContent = repairSN;
+
+        // Total repairs
+        document.getElementById('totalRepairCount').textContent = repairs.length;
+
+        // Pending repairs
+        const pendingRepair = repairs.filter(r => r.status === 'Pending').length;
+        document.getElementById('pendingRepairCount').textContent = pendingRepair;
+
+        // Fixed repairs
+        const fixedRepair = repairs.filter(r => r.status === 'Fixed').length;
+        document.getElementById('fixedRepairCount').textContent = fixedRepair;
+
+        // Populate the summary table
+        populateSummaryTable(items, snRecords);
+    }
+
+    // Populate the summary table by item
+    function populateSummaryTable(items, snRecords) {
+        const tbody = document.querySelector('#summaryTable tbody');
+        tbody.innerHTML = '';
+
+        if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const itemSN = snRecords.filter(sn => sn.item_id === item.id);
+            const totalSNItem = itemSN.length;
+            const availableSNItem = itemSN.filter(sn => sn.status === 'Available').length;
+            const withdrawnSNItem = itemSN.filter(sn => sn.status === 'Withdrawn').length;
+            const repairSNItem = itemSN.filter(sn => sn.status === 'Repair').length;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.name}</td>
+                <td>${item.category || '-'}</td>
+                <td>${item.total}</td>
+                <td>${availableSNItem}</td>
+                <td>${withdrawnSNItem}</td>
+                <td>${repairSNItem}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', updateStatistics);
+
+    // Initial load
+    updateStatistics();
+</script>
+</body>
+</html>

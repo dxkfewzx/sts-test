@@ -78,15 +78,6 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.04);
             padding: 25px;
         }
-        .table-header {
-            background: #f8f9fa;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-        .table {
-            margin-bottom: 0;
-        }
         .table thead th {
             background: #fcfcfd;
             border-bottom: 1px solid #f1f3f9;
@@ -179,7 +170,7 @@
             <i class="bi bi-eye"></i>
             <span>รายละเอียด SN</span>
         </a>
-        <a href="reports.html" class="nav-link-custom">
+        <a href="report.html" class="nav-link-custom">
             <i class="bi bi-bar-chart-line"></i>
             <span>รายงาน</span>
         </a>
@@ -229,9 +220,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Rows will be injected by JS -->
+                    <!-- Will be populated by JavaScript -->
                 </tbody>
             </table>
+            <div class="text-center py-4" id="emptyState">
+                ยังไม่มีข้อมูลวัสดุในระบบ กรุณาเพิ่มรายการวัสดุจากปุ่ม "เพิ่มรายการ"
+            </div>
         </div>
     </div>
 </div>
@@ -255,7 +249,7 @@
     // Key for localStorage
     const STORAGE_KEY = 'inventoryItems';
 
-    // Load items from localStorage or initialize with sample data
+    // Load items from localStorage or initialize empty array
     function loadItems() {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
@@ -263,15 +257,10 @@
                 return JSON.parse(stored);
             } catch (e) {
                 console.error('Failed to parse inventory items', e);
-                // Fallback to sample data
+                return [];
             }
         }
-        // Sample data
-        return [
-            { id: 1, name: 'คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex', category: 'อุปกรณ์ไอที', total: 15, available: 12 },
-            { id: 2, name: 'แล็ปท็อป Lenovo ThinkPad', category: 'อุปกรณ์ไอที', total: 20, available: 15 },
-            { id: 3, name: 'เครื่องพิมพ์ HP LaserJet', category: 'อุปกรณ์สำนักงาน', total: 8, available: 5 }
-        ];
+        return []; // Start empty, no sample data
     }
 
     // Save items to localStorage
@@ -287,12 +276,16 @@
     function renderTable() {
         const items = loadItems();
         const tbody = document.querySelector('#inventoryTable tbody');
+        const emptyState = document.getElementById('emptyState');
+
         tbody.innerHTML = '';
 
         if (items.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุ</td></tr>`;
+            emptyState.style.display = 'block';
             return;
         }
+
+        emptyState.style.display = 'none';
 
         items.forEach((item, index) => {
             const statusText = item.available === 0 ? 'หมด' : item.available < item.total ? 'บางส่วน' : 'ปกติ';
@@ -301,7 +294,7 @@
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td>${item.name}</td>
-                <td>${item.category}</td>
+                <td>${item.category || '-'}</td>
                 <td>${item.total}</td>
                 <td>${item.available}</td>
                 <td><span class="badge-soft ${statusClass}">${statusText}</span></td>

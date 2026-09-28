@@ -15,7 +15,7 @@
             --main-bg: #f4f7fe;
             --text-dark: #2e384d;
             --text-muted: #8492a6;
-            --soft-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            --soft-shadow: 0 10px 30px rgba(0,0,0,0.04);
         }
 
         body { font-family: 'Prompt', sans-serif; background-color: var(--main-bg); color: var(--text-dark); margin: 0; }
@@ -58,7 +58,7 @@
         .modal-content { border-radius: 20px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
         .form-control, .form-select { border-radius: 10px; padding: 12px; background: #f8f9fc; border: 1px solid #eee; }
     </style>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -73,10 +73,10 @@
         <span>SYSTEMS IT</span>
     </div>
     <nav>
-        <a href="index.html" class="nav-link-custom active"><i class="bi bi-grid-fill"></i> แดชบอร์ด</a>
-        <a href="inventory_list.html" class="nav-link-custom"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
-        <a href="report.html" class="nav-link-custom"><i class="bi bi-file-earmark-bar-graph-fill"></i> รายงาน</a>
-        <a href="repair_details.html" class="nav-link-custom"><i class="bi bi-wrench-adjustable-circle-fill"></i> ประวัติแจ้งซ่อม</a>
+        <a href="index.php" class="nav-link-custom active"><i class="bi bi-grid-fill"></i> แดชบอร์ด</a>
+        <a href="inventory_list.php" class="nav-link-custom"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
+        <a href="report.php" class="nav-link-custom"><i class="bi bi-file-earmark-bar-graph-fill"></i> รายงาน</a>
+        <a href="repair_details.php" class="nav-link-custom"><i class="bi bi-wrench-adjustable-circle-fill"></i> ประวัติแจ้งซ่อม</a>
     </nav>
 </div>
 
@@ -98,7 +98,7 @@
 
     <div class="content-card">
         <div class="table-responsive">
-            <table class="table align-middle text-center" id="dashboardTable">
+            <table class="table align-middle text-center">
                 <thead>
                     <tr>
                         <th>ลำดับ</th>
@@ -111,19 +111,102 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Will be populated by JavaScript -->
+                    <!-- Sample data for dashboard -->
+                    <tr>
+                        <td class="text-muted fw-bold">01</td>
+                        <td class="text-start fw-600">คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex</td>
+                        <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">แผนก IT</span></td>
+                        <td class="fw-bold">15</td>
+                        <td class="text-warning fw-bold">3</td>
+                        <td>
+                            <span class="fw-700 text-primary" style="font-size: 1.1rem;">
+                                12
+                            </span>
+                        </td>
+                        <td>
+                            <a href="details.php?id=1" class="btn-action">
+                                <i class="bi bi-search"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">02</td>
+                        <td class="text-start fw-600">แล็ปท็อป Lenovo ThinkPad</td>
+                        <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">แผนกบุคคล</span></td>
+                        <td class="fw-bold">20</td>
+                        <td class="text-warning fw-bold">5</td>
+                        <td>
+                            <span class="fw-700 text-primary" style="font-size: 1.1rem;">
+                                15
+                            </span>
+                        </td>
+                        <td>
+                            <a href="details.php?id=2" class="btn-action">
+                                <i class="bi bi-search"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">03</td>
+                        <td class="text-start fw-600">เครื่องพิมพ์ HP LaserJet</td>
+                        <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">แผนกบัญชี</span></td>
+                        <td class="fw-bold">8</td>
+                        <td class="text-warning fw-bold">3</td>
+                        <td>
+                            <span class="fw-700 text-primary" style="font-size: 1.1rem;">
+                                5
+                            </span>
+                        </td>
+                        <td>
+                            <a href="details.php?id=3" class="btn-action">
+                                <i class="bi bi-search"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">04</td>
+                        <td class="text-start fw-600">โปรเจคเตอร์ Epson</td>
+                        <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">แผนกการตลาด</span></td>
+                        <td class="fw-bold">5</td>
+                        <td class="text-warning fw-bold">1</td>
+                        <td>
+                            <span class="fw-700 text-primary" style="font-size: 1.1rem;">
+                                4
+                            </span>
+                        </td>
+                        <td>
+                            <a href="details.php?id=4" class="btn-action">
+                                <i class="bi bi-search"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted fw-bold">05</td>
+                        <td class="text-start fw-600">สวิตช์เครือข่าย Cisco</td>
+                        <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">แผนกไอที</span></td>
+                        <td class="fw-bold">12</td>
+                        <td class="text-warning fw-bold">2</td>
+                        <td>
+                            <span class="fw-700 text-primary" style="font-size: 1.1rem;">
+                                10
+                            </span>
+                        </td>
+                        <td>
+                            <a href="details.php?id=5" class="btn-action">
+                                <i class="bi bi-search"></i>
+                            </a>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-            <div class="text-center py-4" id="emptyState">
-                ยังไม่มีข้อมูลอุปกรณ์ในระบบ กรุณาเพิ่มรายการวัสดุจากเมนู "รายการอุปกรณ์"
-            </div>
         </div>
     </div>
 </div>
 
+<!-- Withdraw Modal -->
 <div class="modal fade" id="withdrawModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="#" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+        <form action="process.php" method="POST" class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0 px-4 pt-4">
                 <h5 class="fw-bold text-dark">บันทึกการเบิกอุปกรณ์</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -135,6 +218,11 @@
                     <label class="small fw-bold mb-1">เลือกอุปกรณ์</label>
                     <select name="item_id" id="item_select" class="form-select rounded-3 shadow-sm" required onchange="fetchSerialNumbers(this.value)">
                         <option value="">-- เลือกรายการ --</option>
+                        <option value="1">คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex</option>
+                        <option value="2">แล็ปท็อป Lenovo ThinkPad</option>
+                        <option value="3">เครื่องพิมพ์ HP LaserJet</option>
+                        <option value="4">โปรเจคเตอร์ Epson</option>
+                        <option value="5">สวิตช์เครือข่าย Cisco</option>
                     </select>
                 </div>
 
@@ -161,6 +249,12 @@
                         <label class="small fw-bold mb-1">หน่วยงาน / แผนก</label>
                         <select name="dept_info" class="form-select rounded-3 shadow-sm" required>
                             <option value="">-- เลือกแผนก --</option>
+                            <option value="แผนกเทคโนโลยีสารสนเทศ">แผนกเทคโนโลยีสารสนเทศ</option>
+                            <option value="แผนกทรัพยากรบุคคล">แผนกทรัพยากรบุคคล</option>
+                            <option value="แผนกบัญชีและการเงิน">แผนกบัญชีและการเงิน</option>
+                            <option value="แผนกการตลาด">แผนกการตลาด</option>
+                            <option value="แผนกปฏิบัติการ">แผนกปฏิบัติการ</option>
+                            <option value="แผนกวิจัยและพัฒนา">แผนกวิจัยและพัฒนา</option>
                         </select>
                     </div>
                     <div class="row g-2">
@@ -168,19 +262,28 @@
                             <label class="small fw-bold mb-1">อาคาร</label>
                             <select name="building_info" class="form-select rounded-3 shadow-sm">
                                 <option value="">-- อาคาร --</option>
+                                <option value="อาคาร A">อาคาร A</option>
+                                <option value="อาคาร B">อาคาร B</option>
+                                <option value="อาคาร C">อาคาร C</option>
+                                <option value="อาคาร D">อาคาร D</option>
                             </select>
                         </div>
                         <div class="col-6">
                             <label class="small fw-bold mb-1">ชั้น</label>
                             <select name="floor_info" class="form-select rounded-3 shadow-sm">
                                 <option value="">-- ชั้น --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
                             </select>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer border-0 px-4 pb-4 pt-0">
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); border: none;" id="withdrawSubmitBtn">
+                <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-3 shadow-sm" style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); border: none;">
                     ยืนยันการเบิกอุปกรณ์
                 </button>
             </div>
@@ -188,247 +291,66 @@
     </div>
 </div>
 
+<!-- Repair Modal -->
 <div class="modal fade" id="repairModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="#" method="POST" class="modal-content">
+        <form action="process.php" method="POST" class="modal-content">
             <div class="modal-header border-0 pb-0"><h5 class="fw-bold">แจ้งซ่อมอุปกรณ์</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body p-4">
                 <input type="hidden" name="action" value="repair">
                 <div class="mb-3"><label class="small fw-bold mb-1">อุปกรณ์ / SN</label><input type="text" name="device_name" class="form-control" required></div>
                 <div class="mb-3"><label class="small fw-bold mb-1">อาการเสีย</label><textarea name="symptom" class="form-control" rows="3" required></textarea></div>
             </div>
-            <div class="modal-footer border-0 pt-0"><button type="submit" class="btn btn-warning w-100 fw-bold text-white py-2" id="repairSubmitBtn">ส่งข้อมูลซ่อม</button></div>
+            <div class="modal-footer border-0 pt-0"><button type="submit" class="btn btn-warning w-100 fw-bold text-white py-2">ส่งข้อมูลซ่อม</button></div>
         </form>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Sidebar Toggle สำหรับ Mobile
-document.getElementById('sidebarToggle').addEventListener('click', function() {
-    document.getElementById('sidebar').classList.toggle('active');
-});
-
-// Storage keys
-const ITEMS_STORAGE_KEY = 'inventoryItems';
-const SN_STORAGE_KEY = 'snRecords';
-
-// Load items from localStorage
-function loadItems() {
-    const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Failed to parse inventory items', e);
-            return [];
-        }
-    }
-    return [];
-}
-
-// Save items to localStorage
-function saveItems(items) {
-    localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
-    // Update the badge count in the inventory list page (if open)
-    const totalItemsBadge = document.getElementById('totalItemsBadge');
-    if (totalItemsBadge) {
-        totalItemsBadge.textContent = `พบ ${items.length} รายการ`;
-    }
-    // Dispatch an event so other tabs can listen if needed
-    window.dispatchEvent(new StorageEvent('storage', { key: ITEMS_STORAGE_KEY, newValue: JSON.stringify(items) }));
-}
-
-// Load SNs from localStorage
-function loadSNRecords() {
-    const stored = localStorage.getItem(SN_STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Failed to parse SN records', e);
-            return [];
-        }
-    }
-    return [];
-}
-
-// Save SNs to localStorage
-function saveSNRecords(snRecords) {
-    localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
-    // Dispatch an event so other tabs can listen if needed
-    window.dispatchEvent(new StorageEvent('storage', { key: SN_STORAGE_KEY, newValue: JSON.stringify(snRecords) }));
-}
-
-// Populate the item select in withdraw modal
-function populateItemSelect() {
-    const items = loadItems();
-    const select = document.getElementById('item_select');
-    // Clear except first option
-    select.innerHTML = '<option value="">-- เลือกรายการ --</option>';
-    items.forEach(item => {
-        const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = item.name;
-        select.appendChild(option);
+    // Sidebar Toggle สำหรับ Mobile
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
     });
-}
-
-// Fetch serial numbers for selected item (from localStorage) - only Available SNs
+</script>
+<script>
 function fetchSerialNumbers(itemId) {
     const snSelect = document.getElementById('sn_select');
+
+    // ถ้าไม่ได้เลือกอุปกรณ์ ให้ล้างค่าและปิด Dropdown SN
     if (!itemId) {
         snSelect.innerHTML = '<option value="">-- กรุณาเลือกอุปกรณ์ก่อน --</option>';
         snSelect.disabled = true;
         return;
     }
 
-    const snRecords = loadSNRecords();
-    const availableSns = snRecords.filter(sn => sn.item_id == itemId && sn.status === 'Available');
-
-    snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
-    if (availableSns.length > 0) {
-        availableSns.forEach(sn => {
-            const option = document.createElement('option');
-            option.value = sn.serial_number;
-            option.textContent = sn.serial_number;
-            snSelect.appendChild(option);
-        });
-        snSelect.disabled = false;
-    } else {
-        snSelect.innerHTML = '<option value="">-- ไม่มีของว่างในสต็อก --</option>';
-        snSelect.disabled = true;
-    }
-}
-
-// Populate the dashboard table
-function populateDashboard() {
-    const items = loadItems();
-    const tbody = document.querySelector('#dashboardTable tbody');
-    const emptyState = document.getElementById('emptyState');
-
-    if (items.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-    }
-
-    emptyState.style.display = 'none';
-    tbody.innerHTML = '';
-
-    items.forEach((item, index) => {
-        const withdrawn = item.total - item.available; // assuming withdrawn = total - available
-        const isLow = item.available <= 5;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="text-muted fw-bold">${String(index + 1).padStart(2, '0')}</td>
-            <td class="text-start fw-600">${item.name}</td>
-            <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">${item.category || '-'}</span></td>
-            <td class="fw-bold">${item.total}</td>
-            <td class="text-warning fw-bold">${withdrawn}</td>
-            <td>
-                <span class="fw-700 ${isLow ? 'text-danger' : 'text-primary'}" style="font-size: 1.1rem;">
-                    ${item.available}
-                </span>
-            </td>
-            <td>
-                <a href="details.html?id=${item.id}" class="btn-action">
-                    <i class="bi bi-search"></i>
-                </a>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-// Handle withdraw form submission
-document.getElementById('withdrawSubmitBtn').addEventListener('click', function(e) {
-    e.preventDefault(); // Prevent actual form submit
-    const itemSelect = document.getElementById('item_select');
-    const snSelect = document.getElementById('sn_select');
-    const itemId = parseInt(itemSelect.value);
-    const sn = snSelect.value;
-    const jobNumber = document.querySelector('#withdrawModal [name="job_number"]').value.trim();
-    const withdrawer = document.querySelector('#withdrawModal [name="withdrawer"]').value.trim();
-    const deptInfo = document.querySelector('#withdrawModal [name="dept_info"]').value;
-    const buildingInfo = document.querySelector('#withdrawModal [name="building_info"]').value;
-    const floorInfo = document.querySelector('#withdrawModal [name="floor_info"]').value;
-
-    if (!itemId || !sn || !jobNumber || !withdrawer || !deptInfo || !buildingInfo || !floorInfo) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
-        return;
-    }
-
-    // Find the SN in SN records
-    const snRecords = loadSNRecords();
-    const snIndex = snRecords.findIndex(snRecord => snRecord.serial_number === sn && snRecord.item_id === itemId && snRecord.status === 'Available');
-    if (snIndex === -1) {
-        Swal.fire('ไม่สามารถเบิกได้', 'อุปกรณ์นี้ถูกเบิกไปแล้ว หรือข้อมูลไม่ถูกต้อง', 'error');
-        return;
-    }
-
-    // Update the SN status to Withdrawn and record withdrawal info
-    const updatedSnRecords = [...snRecords];
-    updatedSnRecords[snIndex] = {
-        ...updatedSnRecords[snIndex],
-        status: 'Withdrawn',
-        job_number: jobNumber,
-        withdrawer_name: withdrawer,
-        dept_used: deptInfo,
-        building: buildingInfo,
-        floor: floorInfo,
-        withdraw_date: new Date().toISOString().split('T')[0] // YYYY-MM-DD
+    // Sample data for fetch_sn.php - in real app this would come from AJAX
+    const sampleData = {
+        '1': ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
+        '2': ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
+        '3': ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
+        '4': ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
+        '5': ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578']
     };
-    saveSNRecords(updatedSnRecords);
 
-    // Update the item's available count (decrement by 1)
-    const items = loadItems();
-    const updatedItems = items.map(item => {
-        if (item.id === itemId) {
-            return { ...item, available: item.available - 1 };
+    // เรียกดึงข้อมูลจากไฟล์ใหม่ fetch_sn.php (simulated)
+    setTimeout(() => {
+        const data = sampleData[itemId] || [];
+        snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
+        if (data.length > 0) {
+            data.forEach(sn => {
+                const option = document.createElement('option');
+                option.value = sn;
+                option.textContent = sn;
+                snSelect.appendChild(option);
+            });
+            snSelect.disabled = false;
+        } else {
+            snSelect.innerHTML = '<option value="">-- ไม่มีของว่างในสต็อก --</option>';
+            snSelect.disabled = true;
         }
-        return item;
-    });
-    saveItems(updatedItems);
-
-    Swal.fire({
-        title: 'เบิกอุปกรณ์สำเร็จ!',
-        text: `คุณได้เบิกอุปกรณ์ SN: ${sn} เรียบร้อยแล้ว`,
-        icon: 'success',
-        confirmButtonText: 'ตกลง'
-    });
-
-    // Reset form
-    document.querySelector('#withdrawModal form').reset();
-    snSelect.innerHTML = '<option value="">-- กรุณาเลือกอุปกรณ์ก่อน --</option>';
-    snSelect.disabled = true;
-});
-
-// Handle repair form submission (same as before, just shows alert)
-document.getElementById('repairSubmitBtn').addEventListener('click', function(e) {
-    e.preventDefault(); // Prevent actual form submit
-    const deviceName = document.querySelector('#repairModal [name="device_name"]').value;
-    const symptom = document.querySelector('#repairModal [name="symptom"]').value;
-
-    if (!deviceName || !symptom) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
-        return;
-    }
-
-    Swal.fire({
-        title: 'แจ้งซ่อมสำเร็จ!',
-        text: `คุณได้แจ้งซ่อมอุปกรณ์: ${deviceName} เรียบร้อยแล้ว`,
-        icon: 'success',
-        confirmButtonText: 'ตกลง'
-    });
-
-    // Reset form
-    document.querySelector('#repairModal form').reset();
-});
-
-// Initial load
-populateItemSelect();
-populateDashboard();
+    }, 500); // Simulate network delay
+}
 </script>
 </body>
 </html>

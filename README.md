@@ -1,80 +1,47 @@
-# ระบบตรวจสอบสต็อกอุปกรณ์ (Static Site) - พร้อมใช้งานบน Vercel
+# SYSTEMS IT - HTML Demo
 
-ระบบตรวจสอบสต็อกอุปกรณ์แบบคงที่ (static site) ที่สร้างด้วย HTML, CSS, และ JavaScript ล้วนๆ ไม่ต้องการระบบล็อกอิน ไม่แยกหน้าบ้าน/หลังบ้าน ทำงานเป็นหน้าเดียวทั้งหมด พร้อมสำหรับการติดตั้งบน Vercel โดยใช้ @vercel/static Builder
+This is a static HTML demonstration of the original PHP-based SYSTEMS IT inventory management system.
 
-## คุณสมบัติ
-- ดูรายการอุปกรณ์ทั้งหมด (ข้อมูลตัวอย่าง)
-- ดูรายละเอียดหมายเลขซีเรียล (SN) ของแต่ละรายการ
-- รองรับมือถือ (sidebar พับได้)
-- หน้าตาเหมือนระบบเดิม (ใช้ Bootstrap 5, ฟอนต์ Prompt, ไอคอน Bootstrap)
-- ไม่ต้องการฐานข้อมูลหรือเซิร์ฟเวอร์แบ็คเอนด์ (ข้อมูลตัวอย่างใน JavaScript)
-- เผยแพร่ได้ทันทีบน Vercel โดยไม่ต้องตั้งค่าเพิ่มเติม
+## Features
 
-## วิธีการติดตั้งบน Vercel
+- Dashboard showing summary of equipment
+- Inventory list management (add, edit, delete items)
+- Serial Number management (add, edit, delete SNs, change status)
+- Repair history management (add, edit status, delete repairs)
+- Reports page showing statistics
+- All data is stored in the browser's localStorage (no server or database required)
+- Responsive design with mobile sidebar toggle
+- Modal dialogs for all CRUD operations
+- SweetAlert2 for notifications
 
-### ขั้นตอนที่ 1: เตรียมความพร้อม
-1. ติดตั้ง Node.js (หากยังไม่มี) – Vercel CLI ต้องการ Node.js v14+
-   ```bash
-   node -v
-   ```
-2. ติดตั้ง Vercel CLI ทั่วโลก
-   ```bash
-   npm i -g vercel
-   ```
-3. เข้าสู่ระบบ Vercel
-   ```bash
-   vercel login
-   ```
+## Files
 
-### ขั้นตอนที่ 2: ติดตั้งและเผยแพร่
-1. ไปที่โฟลเดอร์โปรเจ็ค
-   ```bash
-   cd /home/adminx/sts-test
-   ```
-2. รันคำสั่ง deploy
-   ```bash
-   vercel
-   ```
-3. ตอบคำถามตามที่ระบบถาม
-   - **Set up and deploy “sts-test”?** → `Y` (หรือกด Enter)
-   - **Which scope do you want to deploy to?** → เลือกบัญชีส่วนตัวหรือทีมของคุณ
-   - **Link to existing project?** → `N` (สร้างโปรเจ็คใหม่)
-   - **What’s your project name?** → พิมพ์ชื่อที่ต้องการบน Vercel (เช่น `equipment-inventory-static`) หรือกด Enter เพื่อใช้ชื่อโฟลเดอร์ `sts-test`
-   - **In which directory is your code located?** → `.` (จุดเดียว)
-   - **Want to override the settings?** → `N` (ใช้การตั้งค่าจาก `vercel.json` ที่เราเตรียมไว้)
+- `index.html` - Dashboard
+- `inventory_list.html` - Manage inventory items
+- `details.html` - Manage SNs for a specific item
+- `repair_details.html` - Manage repair history
+- `report.html` - Statistics and reports
+- `fetch_sn.php` - Original PHP endpoint (not used in this demo, kept for reference)
 
-### ขั้นตอนที่ 3: รอการติดตั้งเสร็จสิ้น
-Vercel จะ:
-- ตรวจจับว่าเป็นโปรเจ็คไซต์คงที่จาก `vercel.json`
-- ใช้ @vercel/static Builder เพื่อให้บริการไฟล์ทั้งหมด
-- ให้ URL ที่คล้ายกับ: `https://equipment-inventory-static.vercel.app`
+## How to Use
 
-### ขั้นตอนที่ 4: เข้าใช้งาน
-เปิดเบราว์เซอร์ไปที่ URL ที่ได้รับ คุณจะเห็นหน้าดashboard หลัก (`/index.php`) ทันที โดยไม่ต้องล็อกอิน
+1. Open any HTML file in a modern web browser (Chrome, Firefox, Safari, Edge).
+2. The data will persist in the browser's localStorage until cleared.
+3. To reset the data, clear the browser cache or localStorage for this site.
 
-## โครงสร้างไฟล์
-```
-sts-test/
-├── index.html              ← หน้าดashboard หลัก (แสดงสรุปสถานะและรายการล่าสุด)
-├── inventory_list.html     ← รายการวัสดุทั้งหมด
-├── details.html            ← รายละเอียดหมายเลขซีเรียล (SN) ของวัสดุ
-├── vercel.json             ← ตั้งค่าให้ใช้ @vercel/static Builder
-└── README.md               ← ไฟล์นี้
-```
+## Notes
 
-## หมายเหตุสำคัญ
-- นี่คือเวอร์ชันไซต์คงที่ที่ใช้ข้อมูลตัวอย่างที่ฝังอยู่ใน JavaScript (ในไฟล์ index.html) สำหรับการสาธิตเท่านั้น
-- หากต้องการแก้ไขข้อมูลให้ตรงกับความต้องการจริง ให้แก้ไขข้อมูลตัวอย่างใน JavaScript ภายในไฟล์ index.html
-- การเผยแพร่บน Vercel ทำได้โดยไม่ต้องติดตั้ง dependencies เพิ่มเติม เพราะเป็นไฟล์ HTML, CSS, JavaScript ล้วนๆ
-- ในการผลิตควรพิจารณาใช้ฐานข้อมูลภายนอกหรือบริการ backend หากต้องการฟังก์ชันเพิ่มเติม เช่น การเพิ่ม/แก้ไขลบข้อมูลจริง แต่สำหรับการดูข้อมูลเท่านั้น ไซต์คงที่นี้เพียงพอ
+- This is a demonstration only. For production use, a server-side backend with database is required.
+- The original PHP files (except db.php) have been converted to HTML with equivalent functionality using JavaScript and localStorage.
+- The styling and behavior closely match the original PHP version.
 
-## การอัปเดตในอนาคต
-หลังจากแก้ไขไฟล์ใด ๆ ให้รัน
-```bash
-vercel --prod
-```
-เพื่ออัปเดตการผลิต หรือรัน `vercel` เพื่อสร้าง preview ก่อน
+## Storage Keys
+
+- `inventoryItems`: Array of inventory items
+- `snRecords`: Array of serial number records
+- `repairRecords`: Array of repair records
+
+Each record has an `id` field (timestamp-based) for uniqueness in this demo.
 
 ---
-ตอนนี้คุณมีระบบตรวจสอบสต็อกอุปกรณ์แบบคงที่ที่พร้อมใช้งานบน Vercel แล้ว! 🎉
-เข้าไปดูระบบหลักๆ ได้ทันทีโดยไม่ยุ่งยากกับระบบล็อกอิน
+*Converted from PHP to HTML static demo*
