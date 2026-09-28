@@ -241,54 +241,54 @@
         return [];
     }
 
-    // Get available serial numbers for an item (based on actual withdrawal status)
+    // Get available serial numbers for an item - replicates the logic from details.html
     function getAvailableSerialNumbers(itemId) {
-        // Convert to number for consistent comparison
-        const numericItemId = Number(itemId);
+        console.log('getAvailableSerialNumbers called for itemId:', itemId);
 
-        // Get item from items
+        // Convert to number for consistent comparison (matching details.html exactly)
+        const itemIdNum = parseInt(itemId);
+
+        // Get item from items (for validation and name)
         const items = loadItems();
-        const item = items.find(i => Number(i.id) === numericItemId);
+        const item = items.find(i => i.id === itemIdNum);
         if (!item) {
             console.warn('Item not found for id:', itemId);
             return [];
         }
         const itemName = item.item_name;
+        console.log('Getting SNs for item:', itemName, '(id:', itemId, ')');
 
-        // Get actually withdrawn SNs for this item from records
+        // EXACTLY replicate how details.html gets SNs for an item
+        // From details.html: const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
         const snRecords = loadSNRecords();
-        const withdrawnSNs = snRecords
-            .filter(sn => Number(sn.item_id) === numericItemId && sn.status === 'Withdrawn')
-            .map(sn => sn.serial_number);
+        const itemSnRecords = snRecords.filter(sn =>
+            sn.item_id === itemIdNum  // Match details.html's comparison exactly
+        );
 
-        // Calculate how many are available
-        const withdrawnCount = withdrawnSNs.length;
-        const availableCount = item.total_qty - withdrawnCount;
+        console.log('Found', itemSnRecords.length, 'total SN records for item', itemName);
 
-        // If no available items, return empty array
-        if (availableCount <= 0) {
-            return [];
+        // Log first few for debugging
+        if (itemSnRecords.length > 0) {
+            console.log('First 3 SN records:', itemSnRecords.slice(0, 3).map(sn => ({
+                serial_number: sn.serial_number,
+                status: sn.status
+            })));
         }
 
-        // Generate available SNs (we'll show these in the dropdown)
-        // Generate SNs in sequence, skipping any that are withdrawn
-        const availableSNs = [];
-        const withdrawnSet = new Set(withdrawnSNs);
-        let snNumber = 1;
+        // For withdrawal, we only want SNs that are currently Available
+        // This matches the status options in details.html:
+        // <option value="Available">Available</option>
+        // <option value="Withdrawn">Withdrawn</option>
+        // <option value="Repair">Repair</option>
+        const availableSnRecords = itemSnRecords.filter(sn =>
+            sn.status && sn.status.trim() === 'Available'
+        );
 
-        // Keep generating until we have enough available SNs
-        while (availableSNs.length < availableCount) {
-            // Generate SN in format: SN{item_id_padded}{sequence_padded}
-            // Example: SN01000001, SN01000002, etc.
-            const sn = `SN${numericItemId.toString().padStart(2, '0')}${String(snNumber).padStart(6, '0')}`;
+        console.log('Available SN records (status=Available):', availableSnRecords.length);
 
-            // Only add if this SN hasn't been withdrawn
-            if (!withdrawnSet.has(sn)) {
-                availableSNs.push(sn);
-            }
-
-            snNumber++;
-        }
+        // Extract serial numbers from available records
+        const availableSNs = availableSnRecords.map(sn => sn.serial_number);
+        console.log('Available SNs to show in dropdown:', availableSNs);
 
         return availableSNs;
     }
@@ -306,9 +306,9 @@
         }
 
         items.forEach((item, index) => {
-            // Calculate withdrawn items for this equipment
+            // Calculate withdrawn items for this equipment - match details.html logic exactly
             const withdrawnCount = snRecords.filter(sn =>
-                Number(sn.item_id) === Number(item.id) && sn.status === 'Withdrawn'
+                sn.item_id === item.id && sn.status === 'Withdrawn'
             ).length;
 
             const remainingCount = item.total_qty - withdrawnCount;
@@ -355,7 +355,39 @@
 
         // Initialize SN records if not present
         if (!localStorage.getItem(SN_STORAGE_KEY)) {
-            localStorage.setItem(SN_STORAGE_KEY, JSON.stringify([]));
+            // Create some sample SN records for testing that match the PHP sample data pattern
+            const sampleSNRecords = [];
+
+            // Match the exact pattern from the original PHP fetch_sn.php
+            const itemSNMap = {
+                1: ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
+                2: ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
+                3: ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
+                4: ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
+                5: ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578', 'SN005234579', 'SN005234580']
+            };
+
+            Object.keys(itemSNMap).forEach(itemId => {
+                const snList = itemSNMap[itemId];
+                snList.forEach((sn, index) => {
+                    sampleSNRecords.push({
+                        id: Date.now() + index, // Simple ID generation
+                        item_id: parseInt(itemId),
+                        serial_number: sn,
+                        brand: '', // Empty for sample data
+                        status: 'Available', // All start as Available
+                        job_number: '',
+                        withdrawer_name: '',
+                        dept_used: '',
+                        building: '',
+                        floor: '',
+                        receive_date: '2026-09-28',
+                        withdraw_date: null
+                    });
+                });
+            });
+
+            localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(sampleSNRecords));
         }
     }
 
@@ -561,22 +593,57 @@ document.querySelector('#withdrawModal form').addEventListener('submit', functio
     // Load existing SN records
     const snRecords = loadSNRecords();
 
-    // Create new withdrawal record
-    const newWithdrawal = {
-        id: Date.now(), // Simple ID generation
-        item_id: itemId,
-        serial_number: serialNumber,
-        job_number: jobNumber,
-        withdrawer: withdrawer,
-        dept_info: deptInfo,
-        building_info: buildingInfo || '',
-        floor_info: floorInfo || '',
-        status: 'Withdrawn',
-        created_at: new Date().toISOString()
-    };
+    // Create withdrawal record by updating the existing SN record - ensures data consistency with details.html
+    // Find the existing SN record for this item and serial number
+    const existingSnIndex = snRecords.findIndex(sn =>
+        sn.item_id === itemId && sn.serial_number === serialNumber
+    );
+
+    let newWithdrawal;
+    if (existingSnIndex !== -1) {
+        // Found existing SN record - update it to withdrawn status
+        const existingSn = snRecords[existingSnIndex];
+        newWithdrawal = {
+            ...existingSn,
+            status: 'Withdrawn',
+            job_number: jobNumber,
+            withdrawer_name: withdrawer,
+            dept_used: deptInfo,
+            building: buildingInfo || '',
+            floor: floorInfo || '',
+            receive_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+            withdraw_date: new Date().toISOString() // Full timestamp for withdrawal
+            // Note: id, item_id, serial_number, brand, etc. are preserved from existingSn
+        };
+    } else {
+        // Fallback: create new record (shouldn't happen in normal operation)
+        console.warn('No existing SN record found for itemId:', itemId, 'serialNumber:', serialNumber);
+        newWithdrawal = {
+            id: Date.now(), // Simple ID generation
+            item_id: itemId,
+            serial_number: serialNumber,
+            brand: '', // Will be empty initially
+            status: 'Withdrawn',
+            job_number: jobNumber,
+            withdrawer_name: withdrawer,
+            dept_used: deptInfo,
+            building: buildingInfo || '',
+            floor: floorInfo || '',
+            receive_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+            withdraw_date: new Date().toISOString() // Full timestamp
+        };
+    }
 
     // Add to records and save
-    const updatedRecords = [...snRecords, newWithdrawal];
+    let updatedRecords;
+    if (existingSnIndex !== -1) {
+        // Replace the existing record with the updated one
+        updatedRecords = [...snRecords];
+        updatedRecords[existingSnIndex] = newWithdrawal;
+    } else {
+        // Add new record (fallback case)
+        updatedRecords = [...snRecords, newWithdrawal];
+    }
     localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(updatedRecords));
 
     // Close modal and show success
