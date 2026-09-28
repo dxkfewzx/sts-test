@@ -199,14 +199,19 @@
     const ITEMS_STORAGE_KEY = 'inventoryItems';
     const SN_STORAGE_KEY = 'snRecords';
 
-    // Hardcoded SN data matching the PHP sample data in fetch_sn.php
-    const SN_MASTER_DATA = {
-        1: ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
-        2: ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
-        3: ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
-        4: ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
-        5: ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578', 'SN005234579', 'SN005234580']
+    // Map item names to their SN master data (matching PHP sample data structure)
+    const ITEM_TO_SN_MAP = {
+        'คอมพิวเตอร์ตั้งโต๊ะ': ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
+        'แล็ปท็อป': ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
+        'จอภาพ': ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
+        'เครื่องพิมพ์': ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
+        'อุปกรณ์เครือข่าย': ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578', 'SN005234579', 'SN005234580']
     };
+
+    // Get SN master data for an item by name
+    function getSnMasterDataForItem(itemName) {
+        return ITEM_TO_SN_MAP[itemName] || [];
+    }
 
     // Load items from localStorage
     function loadItems() {
@@ -236,19 +241,56 @@
         return [];
     }
 
-    // Get available SNs for an item (master list minus withdrawn ones)
+    // Get available serial numbers for an item (based on actual withdrawal status)
     function getAvailableSerialNumbers(itemId) {
-        // Get all possible SNs for this item
-        const allSNs = SN_MASTER_DATA[itemId] || [];
+        // Convert to number for consistent comparison
+        const numericItemId = Number(itemId);
 
-        // Get withdrawn SNs for this item
+        // Get item from items
+        const items = loadItems();
+        const item = items.find(i => Number(i.id) === numericItemId);
+        if (!item) {
+            console.warn('Item not found for id:', itemId);
+            return [];
+        }
+        const itemName = item.item_name;
+
+        // Get actually withdrawn SNs for this item from records
         const snRecords = loadSNRecords();
         const withdrawnSNs = snRecords
-            .filter(sn => sn.item_id === itemId && sn.status === 'Withdrawn')
+            .filter(sn => Number(sn.item_id) === numericItemId && sn.status === 'Withdrawn')
             .map(sn => sn.serial_number);
 
-        // Return SNs that are not withdrawn
-        return allSNs.filter(sn => !withdrawnSNs.includes(sn));
+        // Calculate how many are available
+        const withdrawnCount = withdrawnSNs.length;
+        const availableCount = item.total_qty - withdrawnCount;
+
+        // If no available items, return empty array
+        if (availableCount <= 0) {
+            return [];
+        }
+
+        // Generate available SNs (we'll show these in the dropdown)
+        // Generate SNs in sequence, skipping any that are withdrawn
+        const availableSNs = [];
+        const withdrawnSet = new Set(withdrawnSNs);
+        let snNumber = 1;
+
+        // Keep generating until we have enough available SNs
+        while (availableSNs.length < availableCount) {
+            // Generate SN in format: SN{item_id_padded}{sequence_padded}
+            // Example: SN01000001, SN01000002, etc.
+            const sn = `SN${numericItemId.toString().padStart(2, '0')}${String(snNumber).padStart(6, '0')}`;
+
+            // Only add if this SN hasn't been withdrawn
+            if (!withdrawnSet.has(sn)) {
+                availableSNs.push(sn);
+            }
+
+            snNumber++;
+        }
+
+        return availableSNs;
     }
 
     // Render dashboard table
@@ -266,7 +308,7 @@
         items.forEach((item, index) => {
             // Calculate withdrawn items for this equipment
             const withdrawnCount = snRecords.filter(sn =>
-                sn.item_id === item.id && sn.status === 'Withdrawn'
+                Number(sn.item_id) === Number(item.id) && sn.status === 'Withdrawn'
             ).length;
 
             const remainingCount = item.total_qty - withdrawnCount;
@@ -421,6 +463,7 @@
 </script>
 <script>
 function fetchSerialNumbers(itemId) {
+    console.log('fetchSerialNumbers called with itemId:', itemId, '(type:', typeof itemId, ')');
     const snSelect = document.getElementById('sn_select');
 
     // ถ้าไม่ได้เลือกอุปกรณ์ ให้ล้างค่าและปิด Dropdown SN
@@ -433,7 +476,7 @@ function fetchSerialNumbers(itemId) {
     try {
         // Get available serial numbers from client-side data
         const availableSNs = getAvailableSerialNumbers(itemId);
-        console.log('Available SNs for itemId', itemId, ':', availableSNs);
+        console.log('Available SNs for itemId', itemId, ':', availableSNs, '(length:', availableSNs.length, ')');
 
         snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
         if (availableSNs.length > 0) {
