@@ -117,7 +117,7 @@
 
 <div class="modal fade" id="withdrawModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <form action="process.php" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+        <form method="POST" class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 pb-0 px-4 pt-4">
                 <h5 class="fw-bold text-dark">บันทึกการเบิกอุปกรณ์</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -199,6 +199,15 @@
     const ITEMS_STORAGE_KEY = 'inventoryItems';
     const SN_STORAGE_KEY = 'snRecords';
 
+    // Hardcoded SN data matching the PHP sample data in fetch_sn.php
+    const SN_MASTER_DATA = {
+        1: ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
+        2: ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
+        3: ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
+        4: ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
+        5: ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578', 'SN005234579', 'SN005234580']
+    };
+
     // Load items from localStorage
     function loadItems() {
         const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
@@ -225,6 +234,21 @@
             }
         }
         return [];
+    }
+
+    // Get available SNs for an item (master list minus withdrawn ones)
+    function getAvailableSerialNumbers(itemId) {
+        // Get all possible SNs for this item
+        const allSNs = SN_MASTER_DATA[itemId] || [];
+
+        // Get withdrawn SNs for this item
+        const snRecords = loadSNRecords();
+        const withdrawnSNs = snRecords
+            .filter(sn => sn.item_id === itemId && sn.status === 'Withdrawn')
+            .map(sn => sn.serial_number);
+
+        // Return SNs that are not withdrawn
+        return allSNs.filter(sn => !withdrawnSNs.includes(sn));
     }
 
     // Render dashboard table
@@ -385,28 +409,27 @@ function fetchSerialNumbers(itemId) {
         return;
     }
 
-    // เรียกดึงข้อมูลจากไฟล์ใหม่ fetch_sn.php
-    fetch('fetch_sn.php?item_id=' + itemId)
-        .then(response => response.json())
-        .then(data => {
-            snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
-            if (data.length > 0) {
-                data.forEach(sn => {
-                    const option = document.createElement('option');
-                    option.value = sn;
-                    option.textContent = sn;
-                    snSelect.appendChild(option);
-                });
-                snSelect.disabled = false;
-            } else {
-                snSelect.innerHTML = '<option value="">-- ไม่มีของว่างในสต็อก --</option>';
-                snSelect.disabled = true;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            snSelect.innerHTML = '<option value="">-- เกิดข้อผิดพลาด --</option>';
-        });
+    try {
+        // Get available serial numbers from client-side data
+        const availableSNs = getAvailableSerialNumbers(itemId);
+
+        snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
+        if (availableSNs.length > 0) {
+            availableSNs.forEach(sn => {
+                const option = document.createElement('option');
+                option.value = sn;
+                option.textContent = sn;
+                snSelect.appendChild(option);
+            });
+            snSelect.disabled = false;
+        } else {
+            snSelect.innerHTML = '<option value="">-- ไม่มีของว่างในสต็อก --</option>';
+            snSelect.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        snSelect.innerHTML = '<option value="">-- เกิดข้อผิดพลาด --</option>';
+    }
 }
 </script>
 <script>
@@ -421,6 +444,72 @@ document.getElementById('withdrawModal').addEventListener('show.bs.modal', funct
         opt.textContent = item.item_name;
         itemSelect.appendChild(opt);
     });
+});
+</script>
+
+<script>
+// Handle withdraw form submission
+document.querySelector('#withdrawModal form').addEventListener('submit', function(e) {
+    e.preventDefault(); // Prevent form submission to process.php
+
+    // Get form values
+    const itemId = parseInt(document.getElementById('item_select').value);
+    const serialNumber = document.getElementById('sn_select').value;
+    const jobNumber = document.querySelector('input[name="job_number"]').value.trim();
+    const withdrawer = document.querySelector('input[name="withdrawer"]').value.trim();
+    const deptInfo = document.querySelector('select[name="dept_info"]').value;
+    const buildingInfo = document.querySelector('select[name="building_info"]').value;
+    const floorInfo = document.querySelector('select[name="floor_info"]').value;
+
+    // Validate
+    if (!itemId || !serialNumber || !jobNumber || !withdrawer || !deptInfo) {
+        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+        return;
+    }
+
+    // Load existing SN records
+    const snRecords = loadSNRecords();
+
+    // Create new withdrawal record
+    const newWithdrawal = {
+        id: Date.now(), // Simple ID generation
+        item_id: itemId,
+        serial_number: serialNumber,
+        job_number: jobNumber,
+        withdrawer: withdrawer,
+        dept_info: deptInfo,
+        building_info: buildingInfo || '',
+        floor_info: floorInfo || '',
+        status: 'Withdrawn',
+        created_at: new Date().toISOString()
+    };
+
+    // Add to records and save
+    const updatedRecords = [...snRecords, newWithdrawal];
+    localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(updatedRecords));
+
+    // Close modal and show success
+    const withdrawModalEl = document.getElementById('withdrawModal');
+    const modal = bootstrap.Modal.getInstance(withdrawModalEl);
+    modal.hide();
+
+    // Reset form
+    e.target.reset();
+    document.getElementById('sn_select').innerHTML = '<option value="">-- กรุณาเลือกอุปกรณ์ก่อน --</option>';
+    document.getElementById('sn_select').disabled = true;
+
+    Swal.fire({
+        title: 'บันทึกสำเร็จ!',
+        text: 'บันทึกการเบิกอุปกรณ์เรียบร้อยแล้ว',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false
+    });
+
+    // Trigger dashboard update via storage event
+    window.dispatchEvent(new StorageEvent('storage', {
+        key: SN_STORAGE_KEY
+    }));
 });
 </script>
 </body>
