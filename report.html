@@ -155,35 +155,18 @@
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <i class="bi bi-speedometer2"></i>
+        <i class="bi bi-shield-lock-fill fs-3"></i>
         <span>SYSTEMS IT</span>
     </div>
     <nav>
-        <a href="index.html" class="nav-link-custom">
-            <i class="bi bi-grid"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="inventory_list.html" class="nav-link-custom active">
-            <i class="bi bi-box-seam"></i>
-            <span>รายการวัสดุ</span>
-        </a>
-        <a href="details.html" class="nav-link-custom">
-            <i class="bi bi-eye"></i>
-            <span>รายละเอียด SN</span>
-        </a>
-        <a href="repair_details.html" class="nav-link-custom">
-            <i class="bi bi-wrench-adjustable-circle-fill"></i>
-            <span>ประวัติแจ้งซ่อม</span>
-        </a>
+        <a href="index.html" class="nav-link-custom"><i class="bi bi-grid-fill"></i> แดชบอร์ด</a>
+        <a href="inventory_list.html" class="nav-link-custom"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
+        <a href="report.html" class="nav-link-custom active"><i class="bi bi-file-earmark-bar-graph-fill"></i> รายงาน</a>
+        <a href="repair_details.html" class="nav-link-custom"><i class="bi bi-wrench-adjustable-circle-fill"></i> ประวัติแจ้งซ่อม</a>
     </nav>
 </div>
 
 <div class="main-content">
-    <div class="mobile-header">
-        <span class="fw-bold text-primary">SYSTEMS IT</span>
-        <button class="btn btn-light" id="sidebarToggleMobile"><i class="bi bi-list fs-4"></i></button>
-    </div>
-
     <div class="page-header">
         <div class="header-title">
             <h4>รายงานสรุป</h4>
@@ -299,16 +282,10 @@
 
 <script>
     const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
     const sidebar = document.getElementById('sidebar');
 
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-        });
-    }
-    if (sidebarToggleMobile) {
-        sidebarToggleMobile.addEventListener('click', function() {
             sidebar.classList.toggle('active');
         });
     }
