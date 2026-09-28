@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage SN - คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex | SYSTEMS IT</title>
+    <title>Manage SN - SYSTEMS IT</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -171,8 +171,8 @@
                     <li class="breadcrumb-item active">รายละเอียด Serial Number</li>
                 </ol>
             </nav>
-            <h4 id="item-name">คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex</h4>
-            <p>จัดการและตรวจสอบหมายเลขซีเรียลทั้งหมดของอุปกรณ์ชิ้นนี้</p>
+            <h4 id="item-name">กำลังโหลดข้อมูล...</h4>
+            <p id="item-description">จัดการและตรวจสอบหมายเลขซีเรียลทั้งหมดของอุปกรณ์ชิ้นนี้</p>
         </div>
         <button class="btn btn-success fw-600 rounded-3 shadow-sm px-4 py-2 border-0"
                 style="background: #00a884;"
@@ -368,6 +368,7 @@
 
         // Update the item name in the header
         document.getElementById('item-name').textContent = item.name;
+        document.getElementById('item-description').textContent = `จัดการและตรวจสอบหมายเลขซีเรียลทั้งหมดของอุปกรณ์ชิ้นนี้`;
 
         const snRecords = loadSNRecords();
         const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
@@ -445,6 +446,7 @@
     // Show error if item not found
     function showItemNotFound() {
         document.getElementById('item-name').textContent = 'ไม่พบรายการอุปกรณ์';
+        document.getElementById('item-description').textContent = '';
         document.querySelector('.content-card').innerHTML = '<div class="alert alert-danger">ไม่พบรายการอุปกรณ์ที่ต้องการ กรุณาตรวจสอบว่ารายการนี้ยังมีอยู่ในระบบ</div>';
         document.getElementById('addBulkSNModal').style.display = 'none'; // Hide the add button
     }
