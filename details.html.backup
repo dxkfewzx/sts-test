@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage SN - คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex | SYSTEMS IT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary-blue: #4e73df;
+            --sidebar-bg: #ffffff;
+            --main-bg: #f4f7fe;
+            --text-dark: #2e384d;
+            --text-muted: #8492a6;
+            --soft-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        }
+
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: var(--main-bg);
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        /* --- Sidebar (Theme Consistency) --- */
+        .sidebar {
+            width: 280px;
+            background: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.03);
+            z-index: 1000;
+            transition: 0.3s;
+        }
+
+        .sidebar-brand {
+            padding: 2rem 1.5rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-link-custom {
+            padding: 14px 25px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            transition: 0.3s;
+            margin: 4px 15px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .nav-link-custom i { font-size: 1.2rem; margin-right: 15px; }
+        .nav-link-custom:hover { background: #f8f9fc; color: var(--primary-blue); }
+        .nav-link-custom.active {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(78, 115, 223, 0.2);
+        }
+
+        /* --- Main Content --- */
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+            transition: 0.3s;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-title h4 { font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
+        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0; }
+
+        /* --- Card & Table --- */
+        .content-card {
+            background: #fff;
+            border-radius: 24px;
+            border: none;
+            box-shadow: var(--soft-shadow);
+            padding: 25px;
+        }
+
+        .table thead th {
+            background: #fcfcfd;
+            border-bottom: 1px solid #f1f3f9;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #f1f3f9;
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        /* --- Status Badges --- */
+        .badge-status {
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        .bg-available { background: #e6fffa; color: #00a884; }
+        .bg-withdrawn { background: #fff5f5; color: #e53e3e; }
+        .bg-repair { background: #fffaf0; color: #dd6b20; }
+
+        /* --- Action Buttons --- */
+        .btn-circle {
+            width: 38px; height: 38px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: #f8f9fc; color: var(--text-muted); border: none; transition: 0.3s;
+        }
+        .btn-circle:hover { background: var(--primary-blue); color: #fff; transform: translateY(-2px); }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar { left: -100%; }
+            .sidebar.active { left: 0; }
+            .main-content { margin-left: 0; padding: 20px; padding-top: 80px; }
+            .mobile-header { display: flex !important; }
+        }
+
+        .mobile-header {
+            display: none; background: #fff; padding: 15px 20px; justify-content: space-between;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1001; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-header">
+    <span class="fw-bold text-primary">SYSTEMS IT</span>
+    <button class="btn btn-light" id="sidebarToggle"><i class="bi bi-list fs-4"></i></button>
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-shield-lock-fill fs-3"></i>
+        <span>SYSTEMS IT</span>
+    </div>
+    <nav>
+        <a href="index.html" class="nav-link-custom"><i class="bi bi-grid-fill"></i> แดชบอร์ด</a>
+        <a href="inventory_list.html" class="nav-link-custom"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
+        <a href="report.html" class="nav-link-custom"><i class="bi bi-file-earmark-bar-graph-fill"></i> รายงาน</a>
+        <a href="repair_details.html" class="nav-link-custom"><i class="bi bi-wrench-adjustable-circle-fill"></i> ประวัติแจ้งซ่อม</a>
+    </nav>
+</div>
+
+<div class="main-content">
+    <div class="page-header">
+        <div class="header-title">
+            <nav aria-label="breadcrumb" class="mb-2">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="inventory_list.html" class="text-decoration-none">รายการอุปกรณ์</a></li>
+                    <li class="breadcrumb-item active">รายละเอียด Serial Number</li>
+                </ol>
+            </nav>
+            <h4 id="item-name">คอมพิวเตอร์ตั้งโต๊ะ Dell OptiPlex</h4>
+            <p>จัดการและตรวจสอบหมายเลขซีเรียลทั้งหมดของอุปกรณ์ชิ้นนี้</p>
+        </div>
+        <button class="btn btn-success fw-600 rounded-3 shadow-sm px-4 py-2 border-0"
+                style="background: #00a884;"
+                data-bs-toggle="modal" data-bs-target="#addBulkSNModal">
+            <i class="bi bi-plus-lg me-2"></i>เพิ่ม SN จำนวนมาก
+        </button>
+    </div>
+
+    <div class="content-card">
+        <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+            <span class="fw-bold text-dark"><i class="bi bi-cpu text-primary me-2"></i>รายการทั้งหมดในระบบ</span>
+            <span class="badge rounded-pill bg-primary px-3 py-2" id="total-sn-count">รวม 0 เครื่อง</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle text-center" id="snTable">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Serial Number</th>
+                        <th style="width: 12%;" class="hide-mobile">ยี่ห้อ</th>
+                        <th style="width: 15%;">สถานะ</th>
+                        <th style="width: 12%;" class="hide-mobile">เลข Job</th>
+                        <th style="width: 15%;" class="hide-mobile">หน่วยงาน</th>
+                        <th style="width: 12%;">ผู้เบิก</th>
+                        <th style="width: 10%;">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Will be populated by JavaScript -->
+                </tbody>
+            </table>
+            <div class="text-center py-4" id="emptyState">
+                ยังไม่มีข้อมูล Serial Number ในระบบ กรุณาเพิ่ม SN จากปุ่ม "เพิ่ม SN จำนวนมาก"
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Bulk SN Modal -->
+<div class="modal fade" id="addBulkSNModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="#" method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pt-4">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-plus-circle-fill me-2 text-success"></i>นำเข้า Serial Number จำนวนมาก</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">รายการ Serial Number (1 บรรทัดต่อ 1 SN)</label>
+                    <textarea name="sn_list" class="form-control" rows="8" style="border-radius: 12px; background: #f8f9fc;" placeholder="ก๊อปปี้ SN มาวางที่นี่..." required></textarea>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6"><label class="small fw-bold">ยี่ห้อ</label><input type="text" name="brand" class="form-control" style="border-radius: 10px;" placeholder="เช่น Dell"></div>
+                    <div class="col-6"><label class="small fw-bold">วันที่รับ</label><input type="date" name="receive_date" class="form-control" style="border-radius: 10px;" value="2026-09-28"></div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" onclick="return alertBulkSN()">ยืนยันนำเข้า</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit SN Modal -->
+<div class="modal fade" id="editSNModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="#" method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pt-4">
+                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-pencil-square me-2 text-warning"></i>แก้ไขข้อมูลอุปกรณ์</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3"><label class="small fw-bold mb-1">เลข Job / ใบเบิก</label><input type="text" name="job_number" class="form-control" style="border-radius: 10px;"></div>
+                <div class="mb-3"><label class="small fw-bold">Serial Number</label><input type="text" name="serial_number" class="form-control" style="border-radius: 10px;" required></div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><label class="small fw-bold">ยี่ห้อ</label><input type="text" name="brand" class="form-control" style="border-radius: 10px;"></div>
+                    <div class="col-6">
+                        <label class="small fw-bold">สถานะ</label>
+                        <select name="status" class="form-select" style="border-radius: 10px;">
+                            <option value="Available">Available</option>
+                            <option value="Withdrawn">Withdrawn</option>
+                            <option value="Repair">Repair</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="p-3" style="background: #f8f9fc; border-radius: 15px;">
+                    <div class="mb-2"><label class="small fw-bold text-muted">ชื่อผู้เบิก</label><input type="text" name="withdrawer_name" class="form-control form-control-sm"></div>
+                    <div class="mb-2"><label class="small fw-bold text-muted">หน่วยงาน</label><input type="text" name="dept_used" class="form-control form-control-sm"></div>
+                    <div class="row g-2">
+                        <div class="col-6"><label class="small fw-bold text-muted">อาคาร</label><input type="text" name="building" class="form-control form-control-sm"></div>
+                        <div class="col-6"><label class="small fw-bold text-muted">ชั้น</label><input type="text" name="floor" class="form-control form-control-sm"></div>
+                    </div>
+                </div>
+                <!-- Hidden input to store the SN ID being edited -->
+                <input type="hidden" name="sn_id" id="edit_sn_id">
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4"><button type="submit" class="btn btn-warning w-100 fw-bold rounded-pill shadow-sm" onclick="return alertEditSN()">บันทึกการแก้ไข</button></div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Sidebar Toggle สำหรับ Mobile
+document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('active');
+});
+
+// Storage keys
+const ITEMS_STORAGE_KEY = 'inventoryItems';
+const SN_STORAGE_KEY = 'snRecords';
+
+// Load items from localStorage
+function loadItems() {
+    const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.error('Failed to parse inventory items', e);
+            return [];
+        }
+    }
+    return [];
+}
+
+// Save items to localStorage
+function saveItems(items) {
+    localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
+    // Update the item name in the page header if we are on the details page of an item
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = parseInt(urlParams.get('id'));
+    if (!isNaN(itemId)) {
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+            document.getElementById('item-name').textContent = item.name;
+        }
+    }
+    // Dispatch an event so other tabs can listen if needed
+    window.dispatchEvent(new StorageEvent('storage', { key: ITEMS_STORAGE_KEY, newValue: JSON.stringify(items) }));
+}
+
+// Load SNs from localStorage
+function loadSNRecords() {
+    const stored = localStorage.getItem(SN_STORAGE_KEY);
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.error('Failed to parse SN records', e);
+            return [];
+        }
+    }
+    return [];
+}
+
+// Save SNs to localStorage
+function saveSNRecords(snRecords) {
+    localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
+    // Update the SN count badge on the details page
+    updateSnCountBadge();
+    // Dispatch an event so other tabs can listen if needed
+    window.dispatchEvent(new StorageEvent('storage', { key: SN_STORAGE_KEY, newValue: JSON.stringify(snRecords) }));
+}
+
+// Update the SN count badge in the details page header
+function updateSnCountBadge() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = parseInt(urlParams.get('id'));
+    if (isNaN(itemId)) return;
+
+    const snRecords = loadSNRecords();
+    const itemSnCount = snRecords.filter(sn => sn.item_id === itemId).length;
+    document.getElementById('total-sn-count').textContent = `รวม ${itemSnCount} เครื่อง`;
+}
+
+// Populate the SN table
+function populateSnTable() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = parseInt(urlParams.get('id'));
+    if (isNaN(itemId)) {
+        showItemNotFound();
+        return;
+    }
+
+    const items = loadItems();
+    const item = items.find(i => i.id === itemId);
+    if (!item) {
+        showItemNotFound();
+        return;
+    }
+
+    // Update the item name in the header
+    document.getElementById('item-name').textContent = item.name;
+
+    const snRecords = loadSNRecords();
+    const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
+
+    const tbody = document.querySelector('#snTable tbody');
+    const emptyState = document.getElementById('emptyState');
+
+    tbody.innerHTML = '';
+
+    if (itemSnRecords.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+    }
+
+    emptyState.style.display = 'none';
+
+    itemSnRecords.forEach((sn, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="fw-bold text-dark">${sn.serial_number}</td>
+            <td class="text-muted hide-mobile">${sn.brand || '-'}</td>
+            <td>
+                <span class="badge-status ${sn.status === 'Available' ? 'bg-available' : sn.status === 'Withdrawn' ? 'bg-withdrawn' : 'bg-repair'}">
+                    ${sn.status === 'Available' ? 'Available' : sn.status === 'Withdrawn' ? 'Withdrawn' : 'Repair'}
+                </span>
+            </td>
+            <td class="fw-600 text-primary hide-mobile">${sn.job_number || '-'}</td>
+            <td class="text-muted small hide-mobile">
+                ${sn.dept_used || ''}<br>
+                <small>${sn.building || ''} ชั้น ${sn.floor || ''}</small>
+            </td>
+            <td class="fw-600">${sn.withdrawer_name || '-'}</td>
+            <td>
+                <div class="d-flex justify-content-center gap-1">
+                    <button class="btn-circle btn-edit-sn"
+                        data-id="${sn.id}"
+                        data-sn="${sn.serial_number}"
+                        data-brand="${sn.brand || ''}"
+                        data-status="${sn.status}"
+                        data-job="${sn.job_number || ''}"
+                        data-withdrawer="${sn.withdrawer_name || ''}"
+                        data-dept="${sn.dept_used || ''}"
+                        data-building="${sn.building || ''}"
+                        data-floor="${sn.floor || ''}"
+                        data-bs-toggle="modal" data-bs-target="#editSNModal">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <a href="#" class="btn-circle" onclick="return confirmDeleteSN(${sn.id})">
+                        <i class="bi bi-trash3-fill text-danger"></i>
+                    </a>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Add event listeners for edit buttons
+    document.querySelectorAll('.btn-edit-sn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Fill the modal with data from button attributes
+            document.querySelector('#editSNModal [name="job_number"]').value = this.getAttribute('data-job') || '';
+            document.querySelector('#editSNModal [name="serial_number"]').value = this.getAttribute('data-sn') || '';
+            document.querySelector('#editSNModal [name="brand"]').value = this.getAttribute('data-brand') || '';
+            document.querySelector('#editSNModal [name="status"]').value = this.getAttribute('data-status') || 'Available';
+            document.querySelector('#editSNModal [name="withdrawer_name"]').value = this.getAttribute('data-withdrawer') || '';
+            document.querySelector('#editSNModal [name="dept_used"]').value = this.getAttribute('data-dept') || '';
+            document.querySelector('#editSNModal [name="building"]').value = this.getAttribute('data-building') || '';
+            document.querySelector('#editSNModal [name="floor"]').value = this.getAttribute('data-floor') || '';
+            // Store the SN id in the hidden input
+            document.getElementById('edit_sn_id').value = this.getAttribute('data-id');
+        });
+    });
+}
+
+// Show error if item not found
+function showItemNotFound() {
+    document.getElementById('item-name').textContent = 'ไม่พบรายการอุปกรณ์';
+    document.querySelector('.content-card').innerHTML = '<div class="alert alert-danger">ไม่พบรายการอุปกรณ์ที่ต้องการ กรุณาตรวจสอบว่ารายการนี้ยังมีอยู่ในระบบ</div>';
+    document.getElementById('addBulkSNModal').style.display = 'none'; // Hide the add button
+}
+
+// Handle bulk SN addition
+function alertBulkSN() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = parseInt(urlParams.get('id'));
+    if (isNaN(itemId)) {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+        return false;
+    }
+
+    const snListText = document.querySelector('#addBulkSNModal [name="sn_list"]').value;
+    const brand = document.querySelector('#addBulkSNModal [name="brand"]').value.trim();
+    const receiveDate = document.querySelector('#addBulkSNModal [name="receive_date"]').value;
+
+    if (!snListText.trim() || !brand) {
+        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+        return false;
+    }
+
+    // Split by new line
+    const snArray = snListText.split(/\r\n|\r|\n/).map(sn => sn.trim()).filter(sn => sn !== '');
+    if (snArray.length === 0) {
+        Swal.fire('กรุณาอย่างน้อย 1 Serial Number', '', 'warning');
+        return false;
+    }
+
+    const snRecords = loadSNRecords();
+    const items = loadItems();
+    const item = items.find(i => i.id === itemId);
+    if (!item) {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+        return false;
+    }
+
+    let addedCount = 0;
+    const newSnRecords = [];
+    snArray.forEach(sn => {
+        const newSn = {
+            id: Date.now() + addedCount, // temporary ID, in real system use UUID or DB ID
+            item_id: itemId,
+            serial_number: sn,
+            brand: brand,
+            status: 'Available', // New SNs are available by default
+            job_number: '',
+            withdrawer_name: '',
+            dept_used: '',
+            building: '',
+            floor: '',
+            receive_date: receiveDate,
+            withdraw_date: null
+        };
+        newSnRecords.push(newSn);
+        addedCount++;
+    });
+
+    // Add new SNs to the records
+    const updatedSnRecords = [...snRecords, ...newSnRecords];
+    saveSNRecords(updatedSnRecords);
+
+    // Update the item's available count (since all new SNs are Available)
+    const updatedItems = items.map(i => {
+        if (i.id === itemId) {
+            return { ...i, available: i.available + addedCount };
+        }
+        return i;
+    });
+    saveItems(updatedItems);
+
+    // Reset form
+    document.querySelector('#addBulkSNModal form').reset();
+
+    Swal.fire({
+        title: 'นำเข้าสำเร็จ!',
+        text: `เพิ่ม Serial Number จำนวน ${addedCount} รายการเรียบร้อยแล้ว`,
+        icon: 'success',
+        confirmButtonText: 'ตกลง'
+    });
+
+    // Re-populate the table
+    populateSnTable();
+
+    return false; // Prevent form submission
+}
+
+// Handle SN edit
+function alertEditSN() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const itemId = parseInt(urlParams.get('id'));
+    if (isNaN(itemId)) {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+        return false;
+    }
+
+    const snId = parseInt(document.getElementById('edit_sn_id').value);
+    if (isNaN(snId)) {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
+        return false;
+    }
+
+    const snRecords = loadSNRecords();
+    const snIndex = snRecords.findIndex(sn => sn.id === snId);
+    if (snIndex === -1) {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
+        return false;
+    }
+
+    const sn = snRecords[snIndex];
+
+    // Get updated values from the form
+    const updatedSn = {
+        ...sn,
+        serial_number: document.querySelector('#editSNModal [name="serial_number"]').value.trim(),
+        brand: document.querySelector('#editSNModal [name="brand"]').value.trim(),
+        status: document.querySelector('#editSNModal [name="status"]').value,
+        job_number: document.querySelector('#editSNModal [name="job_number"]').value.trim(),
+        withdrawer_name: document.querySelector('#editSNModal [name="withdrawer_name"]').value.trim(),
+        dept_used: document.querySelector('#editSNModal [name="dept_used"]').value.trim(),
+        building: document.querySelector('#editSNModal [name="building"]').value.trim(),
+        floor: document.querySelector('#editSNModal [name="floor"]').value.trim()
+    };
+
+    // Validate
+    if (!updatedSn.serial_number || !updatedSn.brand) {
+        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+        return false;
+    }
+
+    // Update the SN record
+    const updatedSnRecords = [...snRecords];
+    updatedSnRecords[snIndex] = updatedSn;
+    saveSNRecords(updatedSnRecords);
+
+    // Update the item's available count if the status changed between Available and Withdrawn
+    const items = loadItems();
+    const item = items.find(i => i.id === itemId);
+    if (item) {
+        let availableDelta = 0;
+        if (sn.status === 'Available' && updatedSn.status !== 'Available') {
+            availableDelta = -1; // Changed from Available to something else
+        } else if (sn.status !== 'Available' && updatedSn.status === 'Available') {
+            availableDelta = 1; // Changed from something else to Available
+        }
+        if (availableDelta !== 0) {
+            const updatedItems = items.map(i => {
+                if (i.id === itemId) {
+                    return { ...i, available: i.available + availableDelta };
+                }
+                return i;
+            });
+            saveItems(updatedItems);
+        }
+    }
+
+    // Reset form
+    document.querySelector('#editSNModal form').reset();
+    document.getElementById('edit_sn_id').value = '';
+
+    Swal.fire({
+        title: 'บันทึกสำเร็จ!',
+        text: 'แก้ไขข้อมูลเรียบร้อยแล้ว',
+        icon: 'success',
+        confirmButtonText: 'ตกลง'
+    });
+
+    // Re-populate the table
+    populateSnTable();
+
+    return false; // Prevent form submission
+}
+
+// Handle SN deletion
+function confirmDeleteSN(snId) {
+    Swal.fire({
+        title: 'ยืนยันการลบ SN?',
+        text: "คุณต้องการลบ SN นี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ใช่, ลบเลย!',
+        cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const snRecords = loadSNRecords();
+            const snIndex = snRecords.findIndex(sn => sn.id === snId);
+            if (snIndex !== -1) {
+                const sn = snRecords[snIndex];
+                // Remove the SN
+                const updatedSnRecords = [...snRecords.slice(0, snIndex), ...snRecords.slice(snIndex + 1)];
+                saveSNRecords(updatedSnRecords);
+
+                // Update the item's available count if the deleted SN was Available
+                const urlParams = new URLSearchParams(window.location.search);
+                const itemId = parseInt(urlParams.get('id'));
+                if (!isNaN(itemId)) {
+                    const items = loadItems();
+                    const item = items.find(i => i.id === itemId);
+                    if (item && sn.status === 'Available') {
+                        const updatedItems = items.map(i => {
+                            if (i.id === itemId) {
+                                return { ...i, available: i.available - 1 };
+                            }
+                            return i;
+                        });
+                        saveItems(updatedItems);
+                    }
+                }
+
+                Swal.fire('ลบสำเร็จ!', 'SN ถูกลบเรียบร้อยแล้ว', 'success');
+                // Re-populate the table
+                populateSnTable();
+            }
+        }
+    });
+    return false; // Prevent actual link follow
+}
+
+// Initial load
+populateSnTable();
+</script>
+</body>
+</html>

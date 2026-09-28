@@ -156,7 +156,7 @@
     </div>
     <nav>
         <a href="index.html" class="nav-link-custom"><i class="bi bi-grid-fill"></i> แดชบอร์ด</a>
-        <a href="inventory_list.html" class="nav-link-custom"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
+        <a href="inventory_list.html" class="nav-link-custom active"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
         <a href="report.html" class="nav-link-custom"><i class="bi bi-file-earmark-bar-graph-fill"></i> รายงาน</a>
         <a href="repair_details.html" class="nav-link-custom"><i class="bi bi-wrench-adjustable-circle-fill"></i> ประวัติแจ้งซ่อม</a>
     </nav>
@@ -277,396 +277,396 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Sidebar Toggle สำหรับ Mobile
-document.getElementById('sidebarToggle').addEventListener('click', function() {
-    document.getElementById('sidebar').classList.toggle('active');
-});
-
-// Storage keys
-const ITEMS_STORAGE_KEY = 'inventoryItems';
-const SN_STORAGE_KEY = 'snRecords';
-
-// Load items from localStorage
-function loadItems() {
-    const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Failed to parse inventory items', e);
-            return [];
-        }
-    }
-    return [];
-}
-
-// Save items to localStorage
-function saveItems(items) {
-    localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
-    // Update the item name in the page header if we are on the details page of an item
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemId = parseInt(urlParams.get('id'));
-    if (!isNaN(itemId)) {
-        const item = items.find(i => i.id === itemId);
-        if (item) {
-            document.getElementById('item-name').textContent = item.name;
-        }
-    }
-    // Dispatch an event so other tabs can listen if needed
-    window.dispatchEvent(new StorageEvent('storage', { key: ITEMS_STORAGE_KEY, newValue: JSON.stringify(items) }));
-}
-
-// Load SNs from localStorage
-function loadSNRecords() {
-    const stored = localStorage.getItem(SN_STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Failed to parse SN records', e);
-            return [];
-        }
-    }
-    return [];
-}
-
-// Save SNs to localStorage
-function saveSNRecords(snRecords) {
-    localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
-    // Update the SN count badge on the details page
-    updateSnCountBadge();
-    // Dispatch an event so other tabs can listen if needed
-    window.dispatchEvent(new StorageEvent('storage', { key: SN_STORAGE_KEY, newValue: JSON.stringify(snRecords) }));
-}
-
-// Update the SN count badge in the details page header
-function updateSnCountBadge() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemId = parseInt(urlParams.get('id'));
-    if (isNaN(itemId)) return;
-
-    const snRecords = loadSNRecords();
-    const itemSnCount = snRecords.filter(sn => sn.item_id === itemId).length;
-    document.getElementById('total-sn-count').textContent = `รวม ${itemSnCount} เครื่อง`;
-}
-
-// Populate the SN table
-function populateSnTable() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemId = parseInt(urlParams.get('id'));
-    if (isNaN(itemId)) {
-        showItemNotFound();
-        return;
-    }
-
-    const items = loadItems();
-    const item = items.find(i => i.id === itemId);
-    if (!item) {
-        showItemNotFound();
-        return;
-    }
-
-    // Update the item name in the header
-    document.getElementById('item-name').textContent = item.name;
-
-    const snRecords = loadSNRecords();
-    const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
-
-    const tbody = document.querySelector('#snTable tbody');
-    const emptyState = document.getElementById('emptyState');
-
-    tbody.innerHTML = '';
-
-    if (itemSnRecords.length === 0) {
-        emptyState.style.display = 'block';
-        return;
-    }
-
-    emptyState.style.display = 'none';
-
-    itemSnRecords.forEach((sn, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="fw-bold text-dark">${sn.serial_number}</td>
-            <td class="text-muted hide-mobile">${sn.brand || '-'}</td>
-            <td>
-                <span class="badge-status ${sn.status === 'Available' ? 'bg-available' : sn.status === 'Withdrawn' ? 'bg-withdrawn' : 'bg-repair'}">
-                    ${sn.status === 'Available' ? 'Available' : sn.status === 'Withdrawn' ? 'Withdrawn' : 'Repair'}
-                </span>
-            </td>
-            <td class="fw-600 text-primary hide-mobile">${sn.job_number || '-'}</td>
-            <td class="text-muted small hide-mobile">
-                ${sn.dept_used || ''}<br>
-                <small>${sn.building || ''} ชั้น ${sn.floor || ''}</small>
-            </td>
-            <td class="fw-600">${sn.withdrawer_name || '-'}</td>
-            <td>
-                <div class="d-flex justify-content-center gap-1">
-                    <button class="btn-circle btn-edit-sn"
-                        data-id="${sn.id}"
-                        data-sn="${sn.serial_number}"
-                        data-brand="${sn.brand || ''}"
-                        data-status="${sn.status}"
-                        data-job="${sn.job_number || ''}"
-                        data-withdrawer="${sn.withdrawer_name || ''}"
-                        data-dept="${sn.dept_used || ''}"
-                        data-building="${sn.building || ''}"
-                        data-floor="${sn.floor || ''}"
-                        data-bs-toggle="modal" data-bs-target="#editSNModal">
-                        <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <a href="#" class="btn-circle" onclick="return confirmDeleteSN(${sn.id})">
-                        <i class="bi bi-trash3-fill text-danger"></i>
-                    </a>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(tr);
+    // Sidebar Toggle สำหรับ Mobile
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
     });
 
-    // Add event listeners for edit buttons
-    document.querySelectorAll('.btn-edit-sn').forEach(button => {
-        button.addEventListener('click', function() {
-            // Fill the modal with data from button attributes
-            document.querySelector('#editSNModal [name="job_number"]').value = this.getAttribute('data-job') || '';
-            document.querySelector('#editSNModal [name="serial_number"]').value = this.getAttribute('data-sn') || '';
-            document.querySelector('#editSNModal [name="brand"]').value = this.getAttribute('data-brand') || '';
-            document.querySelector('#editSNModal [name="status"]').value = this.getAttribute('data-status') || 'Available';
-            document.querySelector('#editSNModal [name="withdrawer_name"]').value = this.getAttribute('data-withdrawer') || '';
-            document.querySelector('#editSNModal [name="dept_used"]').value = this.getAttribute('data-dept') || '';
-            document.querySelector('#editSNModal [name="building"]').value = this.getAttribute('data-building') || '';
-            document.querySelector('#editSNModal [name="floor"]').value = this.getAttribute('data-floor') || '';
-            // Store the SN id in the hidden input
-            document.getElementById('edit_sn_id').value = this.getAttribute('data-id');
-        });
-    });
-}
+    // Storage keys
+    const ITEMS_STORAGE_KEY = 'inventoryItems';
+    const SN_STORAGE_KEY = 'snRecords';
 
-// Show error if item not found
-function showItemNotFound() {
-    document.getElementById('item-name').textContent = 'ไม่พบรายการอุปกรณ์';
-    document.querySelector('.content-card').innerHTML = '<div class="alert alert-danger">ไม่พบรายการอุปกรณ์ที่ต้องการ กรุณาตรวจสอบว่ารายการนี้ยังมีอยู่ในระบบ</div>';
-    document.getElementById('addBulkSNModal').style.display = 'none'; // Hide the add button
-}
-
-// Handle bulk SN addition
-function alertBulkSN() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemId = parseInt(urlParams.get('id'));
-    if (isNaN(itemId)) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
-        return false;
-    }
-
-    const snListText = document.querySelector('#addBulkSNModal [name="sn_list"]').value;
-    const brand = document.querySelector('#addBulkSNModal [name="brand"]').value.trim();
-    const receiveDate = document.querySelector('#addBulkSNModal [name="receive_date"]').value;
-
-    if (!snListText.trim() || !brand) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
-        return false;
-    }
-
-    // Split by new line
-    const snArray = snListText.split(/\r\n|\r|\n/).map(sn => sn.trim()).filter(sn => sn !== '');
-    if (snArray.length === 0) {
-        Swal.fire('กรุณาอย่างน้อย 1 Serial Number', '', 'warning');
-        return false;
-    }
-
-    const snRecords = loadSNRecords();
-    const items = loadItems();
-    const item = items.find(i => i.id === itemId);
-    if (!item) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
-        return false;
-    }
-
-    let addedCount = 0;
-    const newSnRecords = [];
-    snArray.forEach(sn => {
-        const newSn = {
-            id: Date.now() + addedCount, // temporary ID, in real system use UUID or DB ID
-            item_id: itemId,
-            serial_number: sn,
-            brand: brand,
-            status: 'Available', // New SNs are available by default
-            job_number: '',
-            withdrawer_name: '',
-            dept_used: '',
-            building: '',
-            floor: '',
-            receive_date: receiveDate,
-            withdraw_date: null
-        };
-        newSnRecords.push(newSn);
-        addedCount++;
-    });
-
-    // Add new SNs to the records
-    const updatedSnRecords = [...snRecords, ...newSnRecords];
-    saveSNRecords(updatedSnRecords);
-
-    // Update the item's available count (since all new SNs are Available)
-    const updatedItems = items.map(i => {
-        if (i.id === itemId) {
-            return { ...i, available: i.available + addedCount };
-        }
-        return i;
-    });
-    saveItems(updatedItems);
-
-    // Reset form
-    document.querySelector('#addBulkSNModal form').reset();
-
-    Swal.fire({
-        title: 'นำเข้าสำเร็จ!',
-        text: `เพิ่ม Serial Number จำนวน ${addedCount} รายการเรียบร้อยแล้ว`,
-        icon: 'success',
-        confirmButtonText: 'ตกลง'
-    });
-
-    // Re-populate the table
-    populateSnTable();
-
-    return false; // Prevent form submission
-}
-
-// Handle SN edit
-function alertEditSN() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const itemId = parseInt(urlParams.get('id'));
-    if (isNaN(itemId)) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
-        return false;
-    }
-
-    const snId = parseInt(document.getElementById('edit_sn_id').value);
-    if (isNaN(snId)) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
-        return false;
-    }
-
-    const snRecords = loadSNRecords();
-    const snIndex = snRecords.findIndex(sn => sn.id === snId);
-    if (snIndex === -1) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
-        return false;
-    }
-
-    const sn = snRecords[snIndex];
-
-    // Get updated values from the form
-    const updatedSn = {
-        ...sn,
-        serial_number: document.querySelector('#editSNModal [name="serial_number"]').value.trim(),
-        brand: document.querySelector('#editSNModal [name="brand"]').value.trim(),
-        status: document.querySelector('#editSNModal [name="status"]').value,
-        job_number: document.querySelector('#editSNModal [name="job_number"]').value.trim(),
-        withdrawer_name: document.querySelector('#editSNModal [name="withdrawer_name"]').value.trim(),
-        dept_used: document.querySelector('#editSNModal [name="dept_used"]').value.trim(),
-        building: document.querySelector('#editSNModal [name="building"]').value.trim(),
-        floor: document.querySelector('#editSNModal [name="floor"]').value.trim()
-    };
-
-    // Validate
-    if (!updatedSn.serial_number || !updatedSn.brand) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
-        return false;
-    }
-
-    // Update the SN record
-    const updatedSnRecords = [...snRecords];
-    updatedSnRecords[snIndex] = updatedSn;
-    saveSNRecords(updatedSnRecords);
-
-    // Update the item's available count if the status changed between Available and Withdrawn
-    const items = loadItems();
-    const item = items.find(i => i.id === itemId);
-    if (item) {
-        let availableDelta = 0;
-        if (sn.status === 'Available' && updatedSn.status !== 'Available') {
-            availableDelta = -1; // Changed from Available to something else
-        } else if (sn.status !== 'Available' && updatedSn.status === 'Available') {
-            availableDelta = 1; // Changed from something else to Available
-        }
-        if (availableDelta !== 0) {
-            const updatedItems = items.map(i => {
-                if (i.id === itemId) {
-                    return { ...i, available: i.available + availableDelta };
-                }
-                return i;
-            });
-            saveItems(updatedItems);
-        }
-    }
-
-    // Reset form
-    document.querySelector('#editSNModal form').reset();
-    document.getElementById('edit_sn_id').value = '';
-
-    Swal.fire({
-        title: 'บันทึกสำเร็จ!',
-        text: 'แก้ไขข้อมูลเรียบร้อยแล้ว',
-        icon: 'success',
-        confirmButtonText: 'ตกลง'
-    });
-
-    // Re-populate the table
-    populateSnTable();
-
-    return false; // Prevent form submission
-}
-
-// Handle SN deletion
-function confirmDeleteSN(snId) {
-    Swal.fire({
-        title: 'ยืนยันการลบ SN?',
-        text: "คุณต้องการลบ SN นี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'ใช่, ลบเลย!',
-        cancelButtonText: 'ยกเลิก'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const snRecords = loadSNRecords();
-            const snIndex = snRecords.findIndex(sn => sn.id === snId);
-            if (snIndex !== -1) {
-                const sn = snRecords[snIndex];
-                // Remove the SN
-                const updatedSnRecords = [...snRecords.slice(0, snIndex), ...snRecords.slice(snIndex + 1)];
-                saveSNRecords(updatedSnRecords);
-
-                // Update the item's available count if the deleted SN was Available
-                const urlParams = new URLSearchParams(window.location.search);
-                const itemId = parseInt(urlParams.get('id'));
-                if (!isNaN(itemId)) {
-                    const items = loadItems();
-                    const item = items.find(i => i.id === itemId);
-                    if (item && sn.status === 'Available') {
-                        const updatedItems = items.map(i => {
-                            if (i.id === itemId) {
-                                return { ...i, available: i.available - 1 };
-                            }
-                            return i;
-                        });
-                        saveItems(updatedItems);
-                    }
-                }
-
-                Swal.fire('ลบสำเร็จ!', 'SN ถูกลบเรียบร้อยแล้ว', 'success');
-                // Re-populate the table
-                populateSnTable();
+    // Load items from localStorage
+    function loadItems() {
+        const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse inventory items', e);
+                return [];
             }
         }
-    });
-    return false; // Prevent actual link follow
-}
+        return [];
+    }
 
-// Initial load
-populateSnTable();
+    // Save items to localStorage
+    function saveItems(items) {
+        localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
+        // Update the item name in the page header if we are on the details page of an item
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = parseInt(urlParams.get('id'));
+        if (!isNaN(itemId)) {
+            const item = items.find(i => i.id === itemId);
+            if (item) {
+                document.getElementById('item-name').textContent = item.name;
+            }
+        }
+        // Dispatch an event so other tabs can listen if needed
+        window.dispatchEvent(new StorageEvent('storage', { key: ITEMS_STORAGE_KEY, newValue: JSON.stringify(items) }));
+    }
+
+    // Load SNs from localStorage
+    function loadSNRecords() {
+        const stored = localStorage.getItem(SN_STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse SN records', e);
+                return [];
+            }
+        }
+        return [];
+    }
+
+    // Save SNs to localStorage
+    function saveSNRecords(snRecords) {
+        localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
+        // Update the SN count badge on the details page
+        updateSnCountBadge();
+        // Dispatch an event so other tabs can listen if needed
+        window.dispatchEvent(new StorageEvent('storage', { key: SN_STORAGE_KEY, newValue: JSON.stringify(snRecords) }));
+    }
+
+    // Update the SN count badge in the details page header
+    function updateSnCountBadge() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = parseInt(urlParams.get('id'));
+        if (isNaN(itemId)) return;
+
+        const snRecords = loadSNRecords();
+        const itemSnCount = snRecords.filter(sn => sn.item_id === itemId).length;
+        document.getElementById('total-sn-count').textContent = `รวม ${itemSnCount} เครื่อง`;
+    }
+
+    // Populate the SN table
+    function populateSnTable() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = parseInt(urlParams.get('id'));
+        if (isNaN(itemId)) {
+            showItemNotFound();
+            return;
+        }
+
+        const items = loadItems();
+        const item = items.find(i => i.id === itemId);
+        if (!item) {
+            showItemNotFound();
+            return;
+        }
+
+        // Update the item name in the header
+        document.getElementById('item-name').textContent = item.name;
+
+        const snRecords = loadSNRecords();
+        const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
+
+        const tbody = document.querySelector('#snTable tbody');
+        const emptyState = document.getElementById('emptyState');
+
+        tbody.innerHTML = '';
+
+        if (itemSnRecords.length === 0) {
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+
+        itemSnRecords.forEach((sn, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold text-dark">${sn.serial_number}</td>
+                <td class="text-muted hide-mobile">${sn.brand || '-'}</td>
+                <td>
+                    <span class="badge-status ${sn.status === 'Available' ? 'bg-available' : sn.status === 'Withdrawn' ? 'bg-withdrawn' : 'bg-repair'}">
+                        ${sn.status === 'Available' ? 'Available' : sn.status === 'Withdrawn' ? 'Withdrawn' : 'Repair'}
+                    </span>
+                </td>
+                <td class="fw-600 text-primary hide-mobile">${sn.job_number || '-'}</td>
+                <td class="text-muted small hide-mobile">
+                    ${sn.dept_used || ''}<br>
+                    <small>${sn.building || ''} ชั้น ${sn.floor || ''}</small>
+                </td>
+                <td class="fw-600">${sn.withdrawer_name || '-'}</td>
+                <td>
+                    <div class="d-flex justify-content-center gap-1">
+                        <button class="btn-circle btn-edit-sn"
+                            data-id="${sn.id}"
+                            data-sn="${sn.serial_number}"
+                            data-brand="${sn.brand || ''}"
+                            data-status="${sn.status}"
+                            data-job="${sn.job_number || ''}"
+                            data-withdrawer="${sn.withdrawer_name || ''}"
+                            data-dept="${sn.dept_used || ''}"
+                            data-building="${sn.building || ''}"
+                            data-floor="${sn.floor || ''}"
+                            data-bs-toggle="modal" data-bs-target="#editSNModal">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <a href="#" class="btn-circle" onclick="return confirmDeleteSN(${sn.id})">
+                            <i class="bi bi-trash3-fill text-danger"></i>
+                        </a>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Add event listeners for edit buttons
+        document.querySelectorAll('.btn-edit-sn').forEach(button => {
+            button.addEventListener('click', function() {
+                // Fill the modal with data from button attributes
+                document.querySelector('#editSNModal [name="job_number"]').value = this.getAttribute('data-job') || '';
+                document.querySelector('#editSNModal [name="serial_number"]').value = this.getAttribute('data-sn') || '';
+                document.querySelector('#editSNModal [name="brand"]').value = this.getAttribute('data-brand') || '';
+                document.querySelector('#editSNModal [name="status"]').value = this.getAttribute('data-status') || 'Available';
+                document.querySelector('#editSNModal [name="withdrawer_name"]').value = this.getAttribute('data-withdrawer') || '';
+                document.querySelector('#editSNModal [name="dept_used"]').value = this.getAttribute('data-dept') || '';
+                document.querySelector('#editSNModal [name="building"]').value = this.getAttribute('data-building') || '';
+                document.querySelector('#editSNModal [name="floor"]').value = this.getAttribute('data-floor') || '';
+                // Store the SN id in the hidden input
+                document.getElementById('edit_sn_id').value = this.getAttribute('data-id');
+            });
+        });
+    }
+
+    // Show error if item not found
+    function showItemNotFound() {
+        document.getElementById('item-name').textContent = 'ไม่พบรายการอุปกรณ์';
+        document.querySelector('.content-card').innerHTML = '<div class="alert alert-danger">ไม่พบรายการอุปกรณ์ที่ต้องการ กรุณาตรวจสอบว่ารายการนี้ยังมีอยู่ในระบบ</div>';
+        document.getElementById('addBulkSNModal').style.display = 'none'; // Hide the add button
+    }
+
+    // Handle bulk SN addition
+    function alertBulkSN() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = parseInt(urlParams.get('id'));
+        if (isNaN(itemId)) {
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+            return false;
+        }
+
+        const snListText = document.querySelector('#addBulkSNModal [name="sn_list"]').value;
+        const brand = document.querySelector('#addBulkSNModal [name="brand"]').value.trim();
+        const receiveDate = document.querySelector('#addBulkSNModal [name="receive_date"]').value;
+
+        if (!snListText.trim() || !brand) {
+            Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+            return false;
+        }
+
+        // Split by new line
+        const snArray = snListText.split(/\r\n|\r|\n/).map(sn => sn.trim()).filter(sn => sn !== '');
+        if (snArray.length === 0) {
+            Swal.fire('กรุณาอย่างน้อย 1 Serial Number', '', 'warning');
+            return false;
+        }
+
+        const snRecords = loadSNRecords();
+        const items = loadItems();
+        const item = items.find(i => i.id === itemId);
+        if (!item) {
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+            return false;
+        }
+
+        let addedCount = 0;
+        const newSnRecords = [];
+        snArray.forEach(sn => {
+            const newSn = {
+                id: Date.now() + addedCount, // temporary ID, in real system use UUID or DB ID
+                item_id: itemId,
+                serial_number: sn,
+                brand: brand,
+                status: 'Available', // New SNs are available by default
+                job_number: '',
+                withdrawer_name: '',
+                dept_used: '',
+                building: '',
+                floor: '',
+                receive_date: receiveDate,
+                withdraw_date: null
+            };
+            newSnRecords.push(newSn);
+            addedCount++;
+        });
+
+        // Add new SNs to the records
+        const updatedSnRecords = [...snRecords, ...newSnRecords];
+        saveSNRecords(updatedSnRecords);
+
+        // Update the item's available count (since all new SNs are Available)
+        const updatedItems = items.map(i => {
+            if (i.id === itemId) {
+                return { ...i, available: i.available + addedCount };
+            }
+            return i;
+        });
+        saveItems(updatedItems);
+
+        // Reset form
+        document.querySelector('#addBulkSNModal form').reset();
+
+        Swal.fire({
+            title: 'นำเข้าสำเร็จ!',
+            text: `เพิ่ม Serial Number จำนวน ${addedCount} รายการเรียบร้อยแล้ว`,
+            icon: 'success',
+            confirmButtonText: 'ตกลง'
+        });
+
+        // Re-populate the table
+        populateSnTable();
+
+        return false; // Prevent form submission
+    }
+
+    // Handle SN edit
+    function alertEditSN() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const itemId = parseInt(urlParams.get('id'));
+        if (isNaN(itemId)) {
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+            return false;
+        }
+
+        const snId = parseInt(document.getElementById('edit_sn_id').value);
+        if (isNaN(snId)) {
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
+            return false;
+        }
+
+        const snRecords = loadSNRecords();
+        const snIndex = snRecords.findIndex(sn => sn.id === snId);
+        if (snIndex === -1) {
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
+            return false;
+        }
+
+        const sn = snRecords[snIndex];
+
+        // Get updated values from the form
+        const updatedSn = {
+            ...sn,
+            serial_number: document.querySelector('#editSNModal [name="serial_number"]').value.trim(),
+            brand: document.querySelector('#editSNModal [name="brand"]').value.trim(),
+            status: document.querySelector('#editSNModal [name="status"]').value,
+            job_number: document.querySelector('#editSNModal [name="job_number"]').value.trim(),
+            withdrawer_name: document.querySelector('#editSNModal [name="withdrawer_name"]').value.trim(),
+            dept_used: document.querySelector('#editSNModal [name="dept_used"]').value.trim(),
+            building: document.querySelector('#editSNModal [name="building"]').value.trim(),
+            floor: document.querySelector('#editSNModal [name="floor"]').value.trim()
+        };
+
+        // Validate
+        if (!updatedSn.serial_number || !updatedSn.brand) {
+            Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+            return false;
+        }
+
+        // Update the SN record
+        const updatedSnRecords = [...snRecords];
+        updatedSnRecords[snIndex] = updatedSn;
+        saveSNRecords(updatedSnRecords);
+
+        // Update the item's available count if the status changed between Available and Withdrawn
+        const items = loadItems();
+        const item = items.find(i => i.id === itemId);
+        if (item) {
+            let availableDelta = 0;
+            if (sn.status === 'Available' && updatedSn.status !== 'Available') {
+                availableDelta = -1; // Changed from Available to something else
+            } else if (sn.status !== 'Available' && updatedSn.status === 'Available') {
+                availableDelta = 1; // Changed from something else to Available
+            }
+            if (availableDelta !== 0) {
+                const updatedItems = items.map(i => {
+                    if (i.id === itemId) {
+                        return { ...i, available: i.available + availableDelta };
+                    }
+                    return i;
+                });
+                saveItems(updatedItems);
+            }
+        }
+
+        // Reset form
+        document.querySelector('#editSNModal form').reset();
+        document.getElementById('edit_sn_id').value = '';
+
+        Swal.fire({
+            title: 'บันทึกสำเร็จ!',
+            text: 'แก้ไขข้อมูลเรียบร้อยแล้ว',
+            icon: 'success',
+            confirmButtonText: 'ตกลง'
+        });
+
+        // Re-populate the table
+        populateSnTable();
+
+        return false; // Prevent form submission
+    }
+
+    // Handle SN deletion
+    function confirmDeleteSN(snId) {
+        Swal.fire({
+            title: 'ยืนยันการลบ SN?',
+            text: "คุณต้องการลบ SN นี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const snRecords = loadSNRecords();
+                const snIndex = snRecords.findIndex(sn => sn.id === snId);
+                if (snIndex !== -1) {
+                    const sn = snRecords[snIndex];
+                    // Remove the SN
+                    const updatedSnRecords = [...snRecords.slice(0, snIndex), ...snRecords.slice(snIndex + 1)];
+                    saveSNRecords(updatedSnRecords);
+
+                    // Update the item's available count if the deleted SN was Available
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const itemId = parseInt(urlParams.get('id'));
+                    if (!isNaN(itemId)) {
+                        const items = loadItems();
+                        const item = items.find(i => i.id === itemId);
+                        if (item && sn.status === 'Available') {
+                            const updatedItems = items.map(i => {
+                                if (i.id === itemId) {
+                                    return { ...i, available: i.available - 1 };
+                                }
+                                return i;
+                            });
+                            saveItems(updatedItems);
+                        }
+                    }
+
+                    Swal.fire('ลบสำเร็จ!', 'SN ถูกลบเรียบร้อยแล้ว', 'success');
+                    // Re-populate the table
+                    populateSnTable();
+                }
+            }
+        });
+        return false; // Prevent actual link follow
+    }
+
+    // Initial load
+    populateSnTable();
 </script>
 </body>
 </html>
