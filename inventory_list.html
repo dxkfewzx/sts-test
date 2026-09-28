@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รายการวัสดุ | SYSTEMS IT</title>
+    <title>Inventory Management Pro | Systems IT</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
@@ -16,12 +16,15 @@
             --text-dark: #2e384d;
             --text-muted: #8492a6;
         }
+
         body {
             font-family: 'Prompt', sans-serif;
             background-color: var(--main-bg);
             color: var(--text-dark);
             margin: 0;
         }
+
+        /* --- Sidebar Redesign --- */
         .sidebar {
             width: 280px;
             background: var(--sidebar-bg);
@@ -31,6 +34,7 @@
             z-index: 1000;
             transition: 0.3s;
         }
+
         .sidebar-brand {
             padding: 2rem 1.5rem;
             font-size: 1.25rem;
@@ -40,6 +44,7 @@
             align-items: center;
             gap: 10px;
         }
+
         .nav-link-custom {
             padding: 14px 25px;
             color: var(--text-muted);
@@ -51,6 +56,7 @@
             border-radius: 12px;
             font-weight: 500;
         }
+
         .nav-link-custom i { font-size: 1.2rem; margin-right: 15px; }
         .nav-link-custom:hover { background: #f8f9fc; color: #4e73df; }
         .nav-link-custom.active {
@@ -58,19 +64,25 @@
             color: #fff;
             box-shadow: 0 10px 20px rgba(78, 115, 223, 0.2);
         }
+
+        /* --- Main Content --- */
         .main-content {
             margin-left: 280px;
             padding: 40px;
             transition: 0.3s;
         }
+
         .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
         }
+
         .header-title h4 { font-weight: 700; color: var(--text-dark); margin-bottom: 5px; }
         .header-title p { color: var(--text-muted); font-size: 0.9rem; }
+
+        /* --- Professional Table Card --- */
         .inventory-card {
             background: #fff;
             border-radius: 24px;
@@ -78,6 +90,7 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.04);
             padding: 25px;
         }
+
         .table thead th {
             background: #fcfcfd;
             border-bottom: 1px solid #f1f3f9;
@@ -85,68 +98,67 @@
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.75rem;
+            letter-spacing: 0.5px;
             padding: 15px;
         }
+
         .table tbody td {
-            padding: 18px 15px;
+            padding: 20px 15px;
             border-bottom: 1px solid #f1f3f9;
-            vertical-align: middle;
+            font-size: 0.95rem;
         }
+
+        .table tbody tr:last-child td { border-bottom: none; }
+        .table tbody tr:hover { background-color: #fbfcfe; }
+
+        /* --- Status & Badges --- */
         .badge-soft {
             padding: 6px 12px;
             border-radius: 8px;
             font-weight: 500;
             font-size: 0.85rem;
-            border: none;
         }
+        .bg-soft-info { background: #e0e8ff; color: #4e73df; }
+
+        /* --- Action Buttons --- */
         .btn-action {
             width: 35px;
             height: 35px;
-            border-radius: 50%;
+            border-radius: 10px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: #f8f9fc;
-            color: var(--primary-blue);
+            transition: 0.2s;
             border: none;
-            transition: 0.3s;
         }
-        .btn-action:hover {
-            background: var(--primary-blue);
-            color: #fff;
-        }
+        .btn-edit { background: #fff1e3; color: #ff9f43; }
+        .btn-edit:hover { background: #ff9f43; color: #fff; }
+        .btn-del { background: #fff0f0; color: #ea5455; }
+        .btn-del:hover { background: #ea5455; color: #fff; }
+
+        /* --- Mobile Responsive --- */
         @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-                padding-top: 80px;
-            }
-            .mobile-header {
-                display: flex !important;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 20px; }
+            .mobile-header { display: flex !important; }
         }
+
         .mobile-header {
             display: none;
             background: #fff;
             padding: 15px 20px;
             justify-content: space-between;
             align-items: center;
-            position: fixed;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
             z-index: 1001;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
     </style>
 </head>
 <body>
+
 <div class="mobile-header">
     <span class="fw-bold text-primary">SYSTEMS IT</span>
     <button class="btn btn-light" id="sidebarToggle"><i class="bi bi-list fs-4"></i></button>
@@ -154,287 +166,327 @@
 
 <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <i class="bi bi-speedometer2"></i>
+        <i class="bi bi-shield-lock-fill fs-3"></i>
         <span>SYSTEMS IT</span>
     </div>
     <nav>
-        <a href="index.html" class="nav-link-custom">
-            <i class="bi bi-grid"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="inventory_list.html" class="nav-link-custom active">
-            <i class="bi bi-box-seam"></i>
-            <span>รายการวัสดุ</span>
-        </a>
-        <a href="details.html" class="nav-link-custom">
-            <i class="bi bi-eye"></i>
-            <span>รายละเอียด SN</span>
-        </a>
-        <a href="report.html" class="nav-link-custom">
-            <i class="bi bi-bar-chart-line"></i>
-            <span>รายงาน</span>
-        </a>
-        <a href="#" class="nav-link-custom">
-            <i class="bi bi-gear"></i>
-            <span>ตั้งค่า</span>
-        </a>
+        <a href="index.html" class="nav-link-custom"><i class="bi bi-grid-fill"></i> แดชบอร์ด</a>
+        <a href="inventory_list.html" class="nav-link-custom active"><i class="bi bi-laptop"></i> รายการอุปกรณ์</a>
+        <a href="report.html" class="nav-link-custom"><i class="bi bi-file-earmark-bar-graph-fill"></i> รายงาน</a>
+        <a href="repair_details.html" class="nav-link-custom"><i class="bi bi-wrench-adjustable-circle-fill"></i> ประวัติแจ้งซ่อม</a>
     </nav>
 </div>
 
 <div class="main-content">
-    <div class="mobile-header">
-        <span class="fw-bold text-primary">SYSTEMS IT</span>
-        <button class="btn btn-light" id="sidebarToggleMobile"><i class="bi bi-list fs-4"></i></button>
-    </div>
-
     <div class="page-header">
         <div class="header-title">
-            <h4>รายการวัสดุ</h4>
-            <p>จัดการวัสดุและอุปกรณ์ทั้งหมด</p>
+            <h4>จัดการรายการอุปกรณ์หลัก</h4>
+            <p>ตรวจสอบและบริหารจัดการสินทรัพย์ไอทีทั้งหมดในระบบ</p>
         </div>
-        <div>
-            <button class="btn btn-outline-primary btn-sm me-2" id="filterBtn"><i class="bi bi-filter"></i> กรอง</button>
-            <button class="btn btn-primary btn-sm" id="addItemBtn"><i class="bi bi-plus-lg"></i> เพิ่มรายการ</button>
-        </div>
+        <button class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 rounded-3 shadow-sm border-0"
+                style="background: var(--primary-gradient);"
+                data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="bi bi-plus-lg"></i>
+            <span class="fw-medium">เพิ่มรายการใหม่</span>
+        </button>
     </div>
 
     <div class="inventory-card">
-        <div class="table-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">รายการวัสดุทั้งหมด</h5>
-                <span class="badge bg-primary" id="totalItemsBadge">พบ 0 รายการ</span>
-            </div>
-        </div>
-
         <div class="table-responsive">
-            <table class="table align-middle mb-0" id="inventoryTable">
+            <table class="table align-middle" id="inventoryTable">
                 <thead>
-                    <tr>
+                    <tr class="text-center">
                         <th>#</th>
-                        <th>ชื่อวัสดุ</th>
-                        <th>ประเภท</th>
-                        <th>จำนวนทั้งหมด</th>
-                        <th>คงเหลือ</th>
-                        <th>สถานะ</th>
-                        <th>การกระทำ</th>
+                        <th class="text-start">ชื่อรายการอุปกรณ์</th>
+                        <th>จำนวนรวม</th>
+                        <th>หน่วย</th>
+                        <th>ผู้ดูแลรับผิดชอบ</th>
+                        <th>วันที่ลงระบบ</th>
+                        <th>การจัดการ</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Will be populated by JavaScript -->
                 </tbody>
             </table>
-            <div class="text-center py-4" id="emptyState">
-                ยังไม่มีข้อมูลวัสดุในระบบ กรุณาเพิ่มรายการวัสดุจากปุ่ม "เพิ่มรายการ"
-            </div>
         </div>
     </div>
 </div>
 
+<!-- Add Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="#" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold">เพิ่มรายการอุปกรณ์</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" name="action" value="add_new_item">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">ชื่ออุปกรณ์</label>
+                    <input type="text" name="item_name" class="form-control border-0 bg-light p-3 rounded-3" placeholder="ระบุชื่ออุปกรณ์..." required>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">จำนวนเริ่มต้น</label>
+                        <input type="number" name="total_qty" class="form-control border-0 bg-light p-3 rounded-3" value="0" min="0" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">หน่วยเรียก</label>
+                        <input type="text" name="unit" class="form-control border-0 bg-light p-3 rounded-3" placeholder="เครื่อง/ชิ้น" required>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-bold">ผู้รับผิดชอบ</label>
+                    <input type="text" name="responsible" class="form-control border-0 bg-light p-3 rounded-3" value="ธีรภัทร์">
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm border-0" style="background: var(--primary-gradient);" id="addItemSubmitBtn">บันทึกข้อมูล</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="#" method="POST" class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 p-4 pb-0">
+                <h5 class="modal-title fw-bold">แก้ไขรายการอุปกรณ์</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" name="action" value="edit_item">
+                <input type="hidden" name="item_id" id="edit_id">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">ชื่ออุปกรณ์</label>
+                    <input type="text" name="item_name" class="form-control border-0 bg-light p-3 rounded-3" id="edit_name" required>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">จำนวนรวม</label>
+                        <input type="number" name="total_qty" class="form-control border-0 bg-light p-3 rounded-3" id="edit_qty" value="0" min="0" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label small fw-bold">หน่วยเรียก</label>
+                        <input type="text" name="unit" class="form-control border-0 bg-light p-3 rounded-3" id="edit_unit" required>
+                    </div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label small fw-bold">ผู้รับผิดชอบ</label>
+                    <input type="text" name="responsible" class="form-control border-0 bg-light p-3 rounded-3" id="edit_responsible" required>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light px-4 py-2 rounded-3 fw-bold" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary px-4 py-2 rounded-3 fw-bold shadow-sm border-0" style="background: var(--primary-gradient);" id="editItemSubmitBtn">บันทึกการแก้ไข</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
-    const sidebar = document.getElementById('sidebar');
+// Sidebar Mobile Toggle
+document.getElementById('sidebarToggle').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('active');
+});
 
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-        });
-    }
-    if (sidebarToggleMobile) {
-        sidebarToggleMobile.addEventListener('click', function() {
-            sidebar.classList.toggle('active');
-        });
-    }
+// Storage key for inventory items
+const STORAGE_KEY = 'inventoryItems';
 
-    // Key for localStorage
-    const STORAGE_KEY = 'inventoryItems';
-
-    // Load items from localStorage or initialize empty array
-    function loadItems() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse inventory items', e);
-                return [];
-            }
+// Load items from localStorage
+function loadItems() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.error('Failed to parse inventory items', e);
+            return [];
         }
-        return []; // Start empty, no sample data
     }
+    return [];
+}
 
-    // Save items to localStorage
-    function saveItems(items) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        // Update badge count
-        document.getElementById('totalItemsBadge').textContent = `พบ ${items.length} รายการ`;
-        // Dispatch an event so other tabs can listen if needed
-        window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY, newValue: JSON.stringify(items) }));
-    }
-
-    // Render the table
-    function renderTable() {
-        const items = loadItems();
-        const tbody = document.querySelector('#inventoryTable tbody');
-        const emptyState = document.getElementById('emptyState');
-
-        tbody.innerHTML = '';
-
-        if (items.length === 0) {
-            emptyState.style.display = 'block';
-            return;
-        }
-
-        emptyState.style.display = 'none';
-
-        items.forEach((item, index) => {
-            const statusText = item.available === 0 ? 'หมด' : item.available < item.total ? 'บางส่วน' : 'ปกติ';
-            const statusClass = item.available === 0 ? 'bg-danger' : item.available < item.total ? 'bg-warning' : 'bg-success';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.category || '-'}</td>
-                <td>${item.total}</td>
-                <td>${item.available}</td>
-                <td><span class="badge-soft ${statusClass}">${statusText}</span></td>
-                <td>
-                    <button class="btn-action btn-view" data-id="${item.id}" title="ดูรายละเอียด"><i class="bi bi-eye"></i></button>
-                    <button class="btn-action btn-edit text-warning" data-id="${item.id}" title="แก้ไข"><i class="bi bi-pencil"></i></button>
-                    <button class="btn-action btn-delete text-danger" data-id="${item.id}" title="ลบ"><i class="bi bi-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        // Add event listeners for buttons
-        document.querySelectorAll('.btn-view').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = parseInt(e.currentTarget.getAttribute('data-id'));
-                const items = loadItems();
-                const item = items.find(i => i.id === id);
-                if (item) {
-                    // Pass id via query parameter to details.html
-                    window.location.href = `details.html?id=${id}`;
-                }
-            });
-        });
-
-        document.querySelectorAll('.btn-edit').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = parseInt(e.currentTarget.getAttribute('data-id'));
-                const items = loadItems();
-                const item = items.find(i => i.id === id);
-                if (item) {
-                    openEditForm(item);
-                }
-            });
-        });
-
-        document.querySelectorAll('.btn-delete').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const id = parseInt(e.currentTarget.getAttribute('data-id'));
-                Swal.fire({
-                    title: 'ยืนยันการลบ?',
-                    text: "คุณต้องการลบรายการนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'ใช่, ลบเลย!',
-                    cancelButtonText: 'ยกเลิก'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        let items = loadItems();
-                        items = items.filter(i => i.id !== id);
-                        saveItems(items);
-                        renderTable();
-                        Swal.fire('ลบสำเร็จ!', 'รายการวัสดุถูกลบเรียบร้อยแล้ว', 'success');
-                    }
-                });
-            });
-        });
-    }
-
-    // Open add form
-    function openAddForm() {
-        Swal.fire({
-            title: 'เพิ่มรายการวัสดุใหม่',
-            html:
-                `<input id="swal-input1" class="swal2-input" placeholder="ชื่อวัสดุ">` +
-                `<input id="swal-input2" class="swal2-input" placeholder="ประเภท">` +
-                `<input id="swal-input3" type="number" class="swal2-input" placeholder="จำนวนทั้งหมด" min="0">` +
-                `<input id="swal-input4" type="number" class="swal2-input" placeholder="จำนวนคงเหลือ" min="0">`,
-            focusConfirm: false,
-            preConfirm: () => {
-                const name = document.getElementById('swal-input1').value.trim();
-                const category = document.getElementById('swal-input2').value.trim();
-                const total = parseInt(document.getElementById('swal-input3').value) || 0;
-                const available = parseInt(document.getElementById('swal-input4').value) || 0;
-                if (!name || !category || isNaN(total) || isNaN(available) || available > total) {
-                    Swal.showValidationMessage(`กรุณากรอกข้อมูลให้ถูกต้อง`);
-                    return false;
-                }
-                return { name, category, total, available };
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const newItem = {
-                    id: Date.now(),
-                    name: result.value.name,
-                    category: result.value.category,
-                    total: result.value.total,
-                    available: result.value.available
-                };
-                const items = loadItems();
-                items.push(newItem);
-                saveItems(items);
-                renderTable();
-                Swal.fire('เพิ่มสำเร็จ!', 'รายการวัสดุถูกเพิ่มเรียบร้อยแล้ว', 'success');
-            }
-        });
-    }
-
-    // Open edit form (prefilled)
-    function openEditForm(item) {
-        Swal.fire({
-            title: 'แก้ไขรายการวัสดุ',
-            html:
-                `<input id="swal-input1" class="swal2-input" value="${item.name}" placeholder="ชื่อวัสดุ">` +
-                `<input id="swal-input2" class="swal2-input" value="${item.category}" placeholder="ประเภท">` +
-                `<input id="swal-input3" type="number" class="swal2-input" value="${item.total}" placeholder="จำนวนทั้งหมด" min="0">` +
-                `<input id="swal-input4" type="number" class="swal2-input" value="${item.available}" placeholder="จำนวนคงเหลือ" min="0">`,
-            focusConfirm: false,
-            preConfirm: () => {
-                const name = document.getElementById('swal-input1').value.trim();
-                const category = document.getElementById('swal-input2').value.trim();
-                const total = parseInt(document.getElementById('swal-input3').value) || 0;
-                const available = parseInt(document.getElementById('swal-input4').value) || 0;
-                if (!name || !category || isNaN(total) || isNaN(available) || available > total) {
-                    Swal.showValidationMessage(`กรุณากรอกข้อมูลให้ถูกต้อง`);
-                    return false;
-                }
-                return { name, category, total, available };
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const items = loadItems();
-                const index = items.findIndex(i => i.id === item.id);
-                if (index !== -1) {
-                    items[index] = { ...items[index], ...result.value, id: item.id };
-                    saveItems(items);
-                    renderTable();
-                    Swal.fire('แก้ไขสำเร็จ!', 'รายการวัสดุถูกแก้ไขเรียบร้อยแล้ว', 'success');
-                }
-            }
-        });
-    }
-
-    // Event listeners
-    document.getElementById('addItemBtn').addEventListener('click', openAddForm);
-
-    // Initial render
+// Save items to localStorage
+function saveItems(items) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    // Update the table
     renderTable();
+}
+
+// Render the table
+function renderTable() {
+    const items = loadItems();
+    const tbody = document.querySelector('#inventoryTable tbody');
+    tbody.innerHTML = '';
+
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
+        return;
+    }
+
+    items.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'text-center';
+        tr.innerHTML = `
+            <td class="text-muted fw-bold">${String(index + 1).padStart(2, '0')}</td>
+            <td class="text-start fw-600">${item.item_name}</td>
+            <td class="fw-bold text-primary">${item.total_qty}</td>
+            <td><span class="text-muted small">${item.unit || '-'}</span></td>
+            <td>
+                <span class="badge-soft bg-soft-info">
+                    <i class="bi bi-person me-1"></i>${item.responsible || '-'}
+                </span>
+            </td>
+            <td class="text-muted small">${item.created_at ? item.created_at : '-'}</td>
+            <td>
+                <div class="d-flex justify-content-center gap-2">
+                    <button class="btn-action btn-edit btn-edit-trigger"
+                            data-id="${item.id}"
+                            data-name="${item.item_name}"
+                            data-qty="${item.total_qty}"
+                            data-unit="${item.unit}"
+                            data-resp="${item.responsible}"
+                            data-bs-toggle="modal" data-bs-target="#editItemModal">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button class="btn-action btn-del btn-delete"
+                            data-id="${item.id}"
+                            data-name="${item.item_name}">
+                        <i class="bi bi-trash3-fill"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Add event listeners for edit buttons
+    document.querySelectorAll('.btn-edit-trigger').forEach(button => {
+        button.addEventListener('click', function() {
+            document.getElementById('edit_id').value = this.getAttribute('data-id');
+            document.getElementById('edit_name').value = this.getAttribute('data-name');
+            document.getElementById('edit_qty').value = this.getAttribute('data-qty');
+            document.getElementById('edit_unit').value = this.getAttribute('data-unit');
+            document.getElementById('edit_responsible').value = this.getAttribute('data-resp');
+        });
+    });
+
+    // Add event listeners for delete buttons
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.getAttribute('data-id');
+            const itemName = this.getAttribute('data-name');
+
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: `คุณกำลังจะลบรายการ "${itemName}" ข้อมูลนี้จะไม่สามารถกู้คืนได้`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea5455',
+                cancelButtonColor: '#8492a6',
+                confirmButtonText: 'ลบข้อมูล',
+                cancelButtonText: 'ยกเลิก',
+                customClass: { popup: 'rounded-4' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Remove item from localStorage
+                    let items = loadItems();
+                    items = items.filter(item => item.id !== parseInt(itemId));
+                    saveItems(items);
+                }
+            });
+        });
+    });
+}
+
+// Handle add item form submission
+document.getElementById('addItemSubmitBtn').addEventListener('click', function(e) {
+    e.preventDefault(); // Prevent form submission
+
+    const itemName = document.querySelector('#addItemModal [name="item_name"]').value.trim();
+    const totalQty = parseInt(document.querySelector('#addItemModal [name="total_qty"]').value);
+    const unit = document.querySelector('#addItemModal [name="unit"]').value.trim();
+    const responsible = document.querySelector('#addItemModal [name="responsible"]').value.trim();
+
+    if (!itemName || isNaN(totalQty) || !unit || !responsible) {
+        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+        return;
+    }
+
+    const newItem = {
+        id: Date.now(),
+        item_name: itemName,
+        total_qty: totalQty,
+        unit: unit,
+        responsible: responsible,
+        created_at: new Date().toLocaleDateString('th-TH') // Store as string for display
+    };
+
+    const items = loadItems();
+    items.push(newItem);
+    saveItems(items);
+
+    // Reset form and close modal
+    document.querySelector('#addItemModal form').reset();
+    const addItemModalEl = document.getElementById('addItemModal');
+    const modal = bootstrap.Modal.getInstance(addItemModalEl);
+    modal.hide();
+
+    Swal.fire('เพิ่มสำเร็จ!', 'รายการอุปกรณ์ถูกเพิ่มเรียบร้อยแล้ว', 'success');
+});
+
+// Handle edit item form submission
+document.getElementById('editItemSubmitBtn').addEventListener('click', function(e) {
+    e.preventDefault(); // Prevent form submission
+
+    const itemId = parseInt(document.getElementById('edit_id').value);
+    const itemName = document.getElementById('edit_name').value.trim();
+    const totalQty = parseInt(document.getElementById('edit_qty').value);
+    const unit = document.getElementById('edit_unit').value.trim();
+    const responsible = document.getElementById('edit_responsible').value.trim();
+
+    if (isNaN(itemId) || !itemName || isNaN(totalQty) || !unit || !responsible) {
+        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+        return;
+    }
+
+    const items = loadItems();
+    const itemIndex = items.findIndex(item => item.id === itemId);
+    if (itemIndex === -1) {
+        Swal.fire('ไม่พบรายการที่ต้องการแก้ไข', '', 'error');
+        return;
+    }
+
+    // Update the item
+    items[itemIndex] = {
+        ...items[itemIndex],
+        item_name: itemName,
+        total_qty: totalQty,
+        unit: unit,
+        responsible: responsible,
+        // Keep the original created_at
+    };
+
+    saveItems(items);
+
+    // Reset form and close modal
+    document.querySelector('#editItemModal form').reset();
+    const editItemModalEl = document.getElementById('editItemModal');
+    const modal = bootstrap.Modal.getInstance(editItemModalEl);
+    modal.hide();
+
+    Swal.fire('แก้ไขสำเร็จ!', 'รายการอุปกรณ์ถูกแก้ไขเรียบร้อยแล้ว', 'success');
+});
+
+// Initial load
+renderTable();
 </script>
 </body>
 </html>

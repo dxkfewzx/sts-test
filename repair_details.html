@@ -224,59 +224,30 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="d-flex gap-2 mb-3">
-    <button class="btn btn-outline-primary btn-sm" id="addRepairBtn"><i class="bi bi-plus-lg"></i> เพิ่มเรื่องซ่อม</button>
-</div>
-
-<!-- Add Repair Modal -->
-<div class="modal fade" id="addRepairModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form action="#" method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pt-4">
-                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-plus-circle-fill me-2 text-success"></i>เพิ่มเรื่องซ่อมใหม่</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3"><label class="small fw-bold mb-1">อุปกรณ์ / SN</label><input type="text" name="device_name" class="form-control" required></div>
-                <div class="mb-3"><label class="small fw-bold mb-1">อาการเสีย</label><textarea name="symptom" class="form-control" rows="3" required></textarea></div>
-            </div>
-            <div class="modal-footer border-0 px-4 pb-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" onclick="return alertAddRepair()">บันทึกเรื่องซ่อม</button>
-            </div>
-        </form>
+    <div class="d-flex gap-2 mb-3">
+        <button class="btn btn-outline-primary btn-sm" id="addRepairBtn"><i class="bi bi-plus-lg"></i> เพิ่มเรื่องซ่อม</button>
     </div>
-</div>
 
-<!-- Edit Repair Modal -->
-<div class="modal fade" id="editRepairModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form action="#" method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
-            <div class="modal-header border-0 pt-4">
-                <h6 class="modal-title fw-bold text-dark"><i class="bi bi-pencil-square me-2 text-warning"></i>แก้ไขเรื่องซ่อม</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="mb-3"><label class="small fw-bold mb-1">อุปกรณ์ / SN</label><input type="text" name="device_name" class="form-control" readonly></div>
-                <div class="mb-3"><label class="small fw-bold mb-1">อาการเสีย</label><textarea name="symptom" class="form-control" rows="3" readonly></textarea></div>
-                <div class="mb-3"><label class="small fw-bold mb-1">สถานะ</label>
-                    <select name="new_status" id="edit_status_val" class="form-select" style="border-radius: 10px;">
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Fixed">Fixed</option>
-                        <option value="Returned">Returned</option>
-                    </select>
+    <!-- Add Repair Modal -->
+    <div class="modal fade" id="addRepairModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="#" method="POST" class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header border-0 pt-4">
+                    <h6 class="modal-title fw-bold text-dark"><i class="bi bi-plus-circle-fill me-2 text-success"></i>เพิ่มเรื่องซ่อมใหม่</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </div>
-            <div class="modal-footer border-0 px-4 pb-4">
-                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
-                <button type="submit" class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold" onclick="return alertEditRepair()">อัปเดตสถานะ</button>
-            </div>
-        </form>
+                <div class="modal-body p-4">
+                    <div class="mb-3"><label class="small fw-bold mb-1">อุปกรณ์ / SN</label><input type="text" name="device_name" class="form-control" required></div>
+                    <div class="mb-3"><label class="small fw-bold mb-1">อาการเสีย</label><textarea name="symptom" class="form-control" rows="3" required></textarea></div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" onclick="return alertAddRepair()">บันทึกเรื่องซ่อม</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -316,7 +287,7 @@ function updateStatusCounts() {
     const repairs = loadRepairs();
     const counts = {
         pending: repairs.filter(r => r.status === 'Pending').length,
-        repairing: repairs.filter(r => r.status === 'In Progress').length,
+        repairing: repairs.filter(r => r.status === 'Repairing').length,
         fixed: repairs.filter(r => r.status === 'Fixed').length,
         returned: repairs.filter(r => r.status === 'Returned').length
     };
@@ -353,8 +324,8 @@ function populateRepairTable() {
             <td class="text-start fw-600 text-dark">${repair.device_name}</td>
             <td class="text-start text-secondary small hide-mobile">${repair.symptom}</td>
             <td>
-                <span class="badge-repair ${repair.status === 'Pending' ? 'st-pending' : repair.status === 'In Progress' ? 'st-repairing' : repair.status === 'Fixed' ? 'st-fixed' : 'st-returned'}">
-                    ${repair.status === 'Pending' ? 'รอรับ' : repair.status === 'In Progress' ? 'กำลังซ่อม' : repair.status === 'Fixed' ? 'เสร็จแล้ว' : 'ส่งคืน'}
+                <span class="badge-repair ${repair.status === 'Pending' ? 'st-pending' : repair.status === 'Repairing' ? 'st-repairing' : repair.status === 'Fixed' ? 'st-fixed' : 'st-returned'}">
+                    ${repair.status === 'Pending' ? 'รอรับ' : repair.status === 'Repairing' ? 'กำลังซ่อม' : repair.status === 'Fixed' ? 'เสร็จแล้ว' : 'ส่งคืน'}
                 </span>
             </td>
             <td>
@@ -365,7 +336,7 @@ function populateRepairTable() {
                         <select name="new_status" class="form-select-status" onchange="this.form.submit()">
                             <option value="">เปลี่ยน</option>
                             <option value="Pending">รอรับ</option>
-                            <option value="In Progress">กำลังซ่อม</option>
+                            <option value="Repairing">กำลังซ่อม</option>
                             <option value="Fixed">เสร็จแล้ว</option>
                             <option value="Returned">ส่งคืน</option>
                         </select>
@@ -456,66 +427,6 @@ function alertAddRepair() {
     return false; // Prevent form submission
 }
 
-// Handle edit repair (status change)
-function alertEditRepair() {
-    const repairId = parseInt(document.querySelector('#editRepairModal [name="repair_id"]').value || 0);
-    if (isNaN(repairId)) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูลเรื่องซ่อมที่ต้องการแก้ไข', 'error');
-        return false;
-    }
-
-    const newStatus = document.querySelector('#editRepairModal [name="new_status"]').value;
-    if (!newStatus) {
-        Swal.fire('กรุณาเลือกสถานะใหม่', '', 'warning');
-        return false;
-    }
-
-    // Find the repair in the modal's data (we need to store the repair id in the modal when opening it)
-    // We'll adjust: when opening the edit modal, we set a hidden input for repair_id.
-    // But we didn't add it in the HTML above. Let's add it now by modifying the modal.
-    // However, we are about to overwrite the file, so we can add it.
-    // For now, we'll assume we have a hidden input with name="repair_id" in the form.
-    // We'll add it in the HTML above.
-
-    // Since we didn't, we'll use a different approach: we'll store the repair id in the modal's dataset when opening it.
-    // We'll do: when opening the modal, we set modal.dataset.editRepairId = repairId.
-    // Then in alertEditRepair, we read it from the modal.
-
-    // Given we are writing the entire HTML, we can add a hidden input. Let's restart the modal HTML with the hidden input.
-
-    // We'll break out and write the full HTML again in the next call if needed.
-
-    // For now, we'll output a placeholder and then write the full file in the next step.
-
-    // We'll assume we have the hidden input and proceed.
-
-    const repairs = loadRepairs();
-    const repairIndex = repairs.findIndex(r => r.id === repairId);
-    if (repairIndex === -1) {
-        Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูลเรื่องซ่อมที่ต้องการแก้ไข', 'error');
-        return false;
-    }
-
-    const updatedRepairs = [...repairs];
-    updatedRepairs[repairIndex] = { ...updatedRepairs[repairIndex], status: newStatus };
-    saveRepairs(updatedRepairs);
-
-    // Reset form
-    document.querySelector('#editRepairModal form').reset();
-
-    Swal.fire({
-        title: 'บันทึกสำเร็จ!',
-        text: 'อัปเดตสถานะเรื่องซ่อมเรียบร้อยแล้ว',
-        icon: 'success',
-        confirmButtonText: 'ตกลง'
-    });
-
-    // Re-populate the table
-    populateRepairTable();
-
-    return false; // Prevent form submission
-}
-
 // Handle delete repair
 function confirmDeleteRepair(repairId) {
     Swal.fire({
@@ -540,21 +451,6 @@ function confirmDeleteRepair(repairId) {
         }
     });
 }
-
-// Open edit repair modal with data
-document.querySelectorAll('.btn-edit-repair').forEach(button => {
-    button.addEventListener('click', function() {
-        // We don't have edit buttons in the table anymore; we replaced them with status dropdown and delete button.
-        // So we need to change the approach: we will not have an edit button; we will only have status dropdown and delete.
-        // The edit modal is only for changing status, which we already handled via the dropdown.
-        // So we can remove the edit modal and the edit button.
-        // However, we keep the edit modal for consistency with the original request? The original had an edit modal to change status.
-        // We have replaced the edit button with a dropdown, so we don't need the edit modal.
-        // But we keep it for now and will not use it.
-        // We'll hide the edit modal and rely on the dropdown.
-        // For simplicity, we'll not implement the edit button click listener.
-    });
-});
 
 // Initial load
 populateRepairTable();
