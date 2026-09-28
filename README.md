@@ -1,47 +1,40 @@
-# SYSTEMS IT - HTML Demo
+# ระบบจัดการอุปกรณ์ IT (HTML Version)
 
-This is a static HTML demonstration of the original PHP-based SYSTEMS IT inventory management system.
+ระบบนี้เป็นการแปลงจากระบบ PHP เดิมมาเป็น HTML ทั้งหมด โดยใช้ localStorage ในการเก็บข้อมูลแทนฐานข้อมูล MySQL เพื่อให้สามารถทำงานได้โดยไม่ต้องมีเซิร์ฟเวอร์
 
-## Features
+## คุณสมบัติ
+- แสดงภาพรวมคลังอุปกรณ์ในหน้าแดชบอร์ด (index.html)
+- จัดการรายการอุปกรณ์ (เพิ่ม/แก้ไข/ลบ) ใน inventory_list.html
+- จัดการหมายเลขซีเรียลของอุปกรณ์ใน details.html
+- ติดตามประวัติการแจ้งซ่อมใน repair_details.html
+- แสดงรายงานสรุปสถิติใน report.html
+- ข้อมูลทั้งหมดเก็บใน localStorage ของเบราว์เซอร์
+- รองรับการทำงานร่วมกันระหว่างหน้า (เมื่อมีการเปลี่ยนแปลงข้อมูลในหน้าใดๆ จะอัปเดตในหน้าอื่นๆ ทันที)
 
-- Dashboard showing summary of equipment
-- Inventory list management (add, edit, delete items)
-- Serial Number management (add, edit, delete SNs, change status)
-- Repair history management (add, edit status, delete repairs)
-- Reports page showing statistics
-- All data is stored in the browser's localStorage (no server or database required)
-- Responsive design with mobile sidebar toggle
-- Modal dialogs for all CRUD operations
-- SweetAlert2 for notifications
+## วิธีใช้งาน
+1. เปิดไฟล์ใดๆ ในโฟลเดอร์นี้ผ่านเบราว์เซอร์สมัยใหม่ (Chrome, Firefox, Safari, Edge)
+2. เพื่อเริ่มต้นใช้งาน ให้ไปที่ `index.html` หรือ `inventory_list.html`
+3. ข้อมูลจะคงอยู่จนกว่าจะลบ cache หรือ localStorage ของเบราว์เซอร์
+4. เพื่อรีเซ็ตข้อมูล ให้ล้างข้อมูลการท่องเว็บหรือ localStorage สำหรับเว็บไซต์นี้
 
-## Files
+## ไฟล์ในระบบ
+- `index.html` - หน้าแดชบอร์ดแสดงภาพรวมคลังอุปกรณ์
+- `inventory_list.html` - จัดการรายการอุปกรณ์หลัก
+- `details.html` - จัดการและตรวจสอบหมายเลขซีเรียลของอุปกรณ์
+- `repair_details.html` - ประวัติการแจ้งซ่อมอุปกรณ์
+- `report.html` - รายงานสรุปสถิติระบบ
+- `fetch_sn.php` - ไฟล์ต้นฉบับ (เก็บไว้สำหรับอ้างอิง แต่ไม่ได้ใช้ในเดโม HTML)
 
-- `index.html` - Dashboard
-- `inventory_list.html` - Manage inventory items
-- `details.html` - Manage SNs for a specific item
-- `repair_details.html` - Manage repair history
-- `report.html` - Statistics and reports
-- `fetch_sn.php` - Original PHP endpoint (not used in this demo, kept for reference)
+## หมายเหตุ
+- นี่เป็นการสาธิตเท่านั้น สำหรับการใช้งานจริงควรมีเซิร์ฟเวอร์แบ็กเอนด์และฐานข้อมูล
+- การแปลงนี้เน้นที่การรักษาฟังก์ชันการทำงานและรูปลักษณ์ของระบบต้นฉบับไว้ให้มากที่สุด
+- คุณสามารถทดลองเพิ่ม แก้ไข ลบ ข้อมูลได้ทุกส่วน และข้อมูลจะคงอยู่ในเบราว์เซอร์นั้นๆ
 
-## How to Use
+## การอัปเดตล่าสุด
+ตามคำขอของผู้ใช้:
+1. index.html: ปุ่ม "แจ้งซ่อม" เปลี่ยนเป็นใช้ SweetAlert2 เพื่อยืนยันก่อนไปยัง repair_details.html
+2. index.html: เพิ่มการฟังเหตุการณ์ storage สำหรับทั้งรายการอุปกรณ์และหมายเลขซีเรียล เพื่อให้หน้าดashboardอัปเดตเมื่อมีการเปลี่ยนแปลงข้อมูล
+3. repair_details.html: ลบปุ่ม "เพิ่มเรื่องซ่อม" ออกและแก้ไขให้ dropdown เปลี่ยนสถานะทำงานได้โดยไม่ต้องส่งฟอร์ม
+4. ไฟล์อื่นๆ คงสภาพเดิมเหมือนไฟล์ PHP ต้นฉบับ (ไม่มีข้อมูลตัวอย่าง)
 
-1. Open any HTML file in a modern web browser (Chrome, Firefox, Safari, Edge).
-2. The data will persist in the browser's localStorage until cleared.
-3. To reset the data, clear the browser cache or localStorage for this site.
-
-## Notes
-
-- This is a demonstration only. For production use, a server-side backend with database is required.
-- The original PHP files (except db.php) have been converted to HTML with equivalent functionality using JavaScript and localStorage.
-- The styling and behavior closely match the original PHP version.
-
-## Storage Keys
-
-- `inventoryItems`: Array of inventory items
-- `snRecords`: Array of serial number records
-- `repairRecords`: Array of repair records
-
-Each record has an `id` field (timestamp-based) for uniqueness in this demo.
-
----
-*Converted from PHP to HTML static demo*
+ผู้ใช้สามารถเริ่มใช้งานได้ทันทีโดยเปิดไฟล์ `index.html` ขึ้นมา! 🚀
