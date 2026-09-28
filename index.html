@@ -297,7 +297,28 @@
         }
     });
 
+    // Initialize test data if none exists
+    function initializeTestData() {
+        // Initialize items if not present
+        if (!localStorage.getItem(ITEMS_STORAGE_KEY)) {
+            const testItems = [
+                { id: 1, item_name: 'คอมพิวเตอร์ตั้งโต๊ะ', total_qty: 10, unit: 'เครื่อง', responsible: 'ธีรภัทร์', created_at: '28/09/2026' },
+                { id: 2, item_name: 'แล็ปท็อป', total_qty: 15, unit: 'เครื่อง', responsible: 'สมศรี', created_at: '28/09/2026' },
+                { id: 3, item_name: 'จอภาพ', total_qty: 20, unit: 'ตัว', responsible: 'สมหมาย', created_at: '28/09/2026' },
+                { id: 4, item_name: 'เครื่องพิมพ์', total_qty: 8, unit: 'เครื่อง', responsible: 'สมพงษ์', created_at: '28/09/2026' },
+                { id: 5, item_name: 'อุปกรณ์เครือข่าย', total_qty: 12, unit: 'ชุด', responsible: 'สมไทย', created_at: '28/09/2026' }
+            ];
+            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(testItems));
+        }
+
+        // Initialize SN records if not present
+        if (!localStorage.getItem(SN_STORAGE_KEY)) {
+            localStorage.setItem(SN_STORAGE_KEY, JSON.stringify([]));
+        }
+    }
+
     // Initial load
+    initializeTestData();
     renderDashboard();
 </script>
 
@@ -412,6 +433,7 @@ function fetchSerialNumbers(itemId) {
     try {
         // Get available serial numbers from client-side data
         const availableSNs = getAvailableSerialNumbers(itemId);
+        console.log('Available SNs for itemId', itemId, ':', availableSNs);
 
         snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
         if (availableSNs.length > 0) {
@@ -427,7 +449,7 @@ function fetchSerialNumbers(itemId) {
             snSelect.disabled = true;
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in fetchSerialNumbers:', error);
         snSelect.innerHTML = '<option value="">-- เกิดข้อผิดพลาด --</option>';
     }
 }
@@ -453,17 +475,43 @@ document.querySelector('#withdrawModal form').addEventListener('submit', functio
     e.preventDefault(); // Prevent form submission to process.php
 
     // Get form values
-    const itemId = parseInt(document.getElementById('item_select').value);
-    const serialNumber = document.getElementById('sn_select').value;
+    const itemSelect = document.getElementById('item_select');
+    const snSelect = document.getElementById('sn_select');
+    const itemId = parseInt(itemSelect.value);
+    const serialNumber = snSelect.value;
     const jobNumber = document.querySelector('input[name="job_number"]').value.trim();
     const withdrawer = document.querySelector('input[name="withdrawer"]').value.trim();
     const deptInfo = document.querySelector('select[name="dept_info"]').value;
     const buildingInfo = document.querySelector('select[name="building_info"]').value;
     const floorInfo = document.querySelector('select[name="floor_info"]').value;
 
+    // Debug logging
+    console.log('Form values:', { itemId, serialNumber, jobNumber, withdrawer, deptInfo, buildingInfo, floorInfo });
+
     // Validate
-    if (!itemId || !serialNumber || !jobNumber || !withdrawer || !deptInfo) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+    if (!itemId) {
+        Swal.fire('กรุณาเลือกรายการอุปกรณ์', '', 'warning');
+        itemSelect.focus();
+        return;
+    }
+    if (!serialNumber) {
+        Swal.fire('กรุณาเลือกหมายเลขเครื่อง', '', 'warning');
+        snSelect.focus();
+        return;
+    }
+    if (!jobNumber) {
+        Swal.fire('กรุณากรอกเลข Job', '', 'warning');
+        document.querySelector('input[name="job_number"]').focus();
+        return;
+    }
+    if (!withdrawer) {
+        Swal.fire('กรุณากรอกชื่อผู้เบิก', '', 'warning');
+        document.querySelector('input[name="withdrawer"]').focus();
+        return;
+    }
+    if (!deptInfo) {
+        Swal.fire('กรุณาเลือกแผนก', '', 'warning');
+        document.querySelector('select[name="dept_info"]').focus();
         return;
     }
 
