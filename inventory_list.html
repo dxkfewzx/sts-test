@@ -291,202 +291,202 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// Sidebar Mobile Toggle
-document.getElementById('sidebarToggle').addEventListener('click', function() {
-    document.getElementById('sidebar').classList.toggle('active');
-});
+    // Sidebar Mobile Toggle
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
 
-// Storage key for inventory items
-const STORAGE_KEY = 'inventoryItems';
+    // Storage key for inventory items
+    const STORAGE_KEY = 'inventoryItems';
 
-// Load items from localStorage
-function loadItems() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Failed to parse inventory items', e);
-            return [];
+    // Load items from localStorage
+    function loadItems() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                console.error('Failed to parse inventory items', e);
+                return [];
+            }
         }
-    }
-    return [];
-}
-
-// Save items to localStorage
-function saveItems(items) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    // Update the table
-    renderTable();
-}
-
-// Render the table
-function renderTable() {
-    const items = loadItems();
-    const tbody = document.querySelector('#inventoryTable tbody');
-    tbody.innerHTML = '';
-
-    if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
-        return;
+        return [];
     }
 
-    items.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.className = 'text-center';
-        tr.innerHTML = `
-            <td class="text-muted fw-bold">${String(index + 1).padStart(2, '0')}</td>
-            <td class="text-start fw-600">${item.item_name}</td>
-            <td class="fw-bold text-primary">${item.total_qty}</td>
-            <td><span class="text-muted small">${item.unit || '-'}</span></td>
-            <td>
-                <span class="badge-soft bg-soft-info">
-                    <i class="bi bi-person me-1"></i>${item.responsible || '-'}
-                </span>
-            </td>
-            <td class="text-muted small">${item.created_at ? item.created_at : '-'}</td>
-            <td>
-                <div class="d-flex justify-content-center gap-2">
-                    <button class="btn-action btn-edit btn-edit-trigger"
-                            data-id="${item.id}"
-                            data-name="${item.item_name}"
-                            data-qty="${item.total_qty}"
-                            data-unit="${item.unit}"
-                            data-resp="${item.responsible}"
-                            data-bs-toggle="modal" data-bs-target="#editItemModal">
-                        <i class="bi bi-pencil-fill"></i>
-                    </button>
-                    <button class="btn-action btn-del btn-delete"
-                            data-id="${item.id}"
-                            data-name="${item.item_name}">
-                        <i class="bi bi-trash3-fill"></i>
-                    </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
+    // Save items to localStorage
+    function saveItems(items) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+        // Update the table
+        renderTable();
+    }
 
-    // Add event listeners for edit buttons
-    document.querySelectorAll('.btn-edit-trigger').forEach(button => {
-        button.addEventListener('click', function() {
-            document.getElementById('edit_id').value = this.getAttribute('data-id');
-            document.getElementById('edit_name').value = this.getAttribute('data-name');
-            document.getElementById('edit_qty').value = this.getAttribute('data-qty');
-            document.getElementById('edit_unit').value = this.getAttribute('data-unit');
-            document.getElementById('edit_responsible').value = this.getAttribute('data-resp');
+    // Render the table
+    function renderTable() {
+        const items = loadItems();
+        const tbody = document.querySelector('#inventoryTable tbody');
+        tbody.innerHTML = '';
+
+        if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
+            return;
+        }
+
+        items.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.className = 'text-center';
+            tr.innerHTML = `
+                <td class="text-muted fw-bold">${String(index + 1).padStart(2, '0')}</td>
+                <td class="text-start fw-600">${item.item_name}</td>
+                <td class="fw-bold text-primary">${item.total_qty}</td>
+                <td><span class="text-muted small">${item.unit || '-'}</span></td>
+                <td>
+                    <span class="badge-soft bg-soft-info">
+                        <i class="bi bi-person me-1"></i>${item.responsible || '-'}
+                    </span>
+                </td>
+                <td class="text-muted small">${item.created_at ? item.created_at : '-'}</td>
+                <td>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn-action btn-edit btn-edit-trigger"
+                                data-id="${item.id}"
+                                data-name="${item.item_name}"
+                                data-qty="${item.total_qty}"
+                                data-unit="${item.unit}"
+                                data-resp="${item.responsible}"
+                                data-bs-toggle="modal" data-bs-target="#editItemModal">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button class="btn-action btn-del btn-delete"
+                                data-id="${item.id}"
+                                data-name="${item.item_name}">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
         });
-    });
 
-    // Add event listeners for delete buttons
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', function() {
-            const itemId = this.getAttribute('data-id');
-            const itemName = this.getAttribute('data-name');
-
-            Swal.fire({
-                title: 'ยืนยันการลบ?',
-                text: `คุณกำลังจะลบรายการ "${itemName}" ข้อมูลนี้จะไม่สามารถกู้คืนได้`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ea5455',
-                cancelButtonColor: '#8492a6',
-                confirmButtonText: 'ลบข้อมูล',
-                cancelButtonText: 'ยกเลิก',
-                customClass: { popup: 'rounded-4' }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Remove item from localStorage
-                    let items = loadItems();
-                    items = items.filter(item => item.id !== parseInt(itemId));
-                    saveItems(items);
-                }
+        // Add event listeners for edit buttons
+        document.querySelectorAll('.btn-edit-trigger').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('edit_id').value = this.getAttribute('data-id');
+                document.getElementById('edit_name').value = this.getAttribute('data-name');
+                document.getElementById('edit_qty').value = this.getAttribute('data-qty');
+                document.getElementById('edit_unit').value = this.getAttribute('data-unit');
+                document.getElementById('edit_responsible').value = this.getAttribute('data-resp');
             });
         });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-id');
+                const itemName = this.getAttribute('data-name');
+
+                Swal.fire({
+                    title: 'ยืนยันการลบ?',
+                    text: `คุณกำลังจะลบรายการ "${itemName}" ข้อมูลนี้จะไม่สามารถกู้คืนได้`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ea5455',
+                    cancelButtonColor: '#8492a6',
+                    confirmButtonText: 'ลบข้อมูล',
+                    cancelButtonText: 'ยกเลิก',
+                    customClass: { popup: 'rounded-4' }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Remove item from localStorage
+                        let items = loadItems();
+                        items = items.filter(item => item.id !== parseInt(itemId));
+                        saveItems(items);
+                    }
+                });
+            });
+        });
+    }
+
+    // Handle add item form submission
+    document.getElementById('addItemSubmitBtn').addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent form submission
+
+        const itemName = document.querySelector('#addItemModal [name="item_name"]').value.trim();
+        const totalQty = parseInt(document.querySelector('#addItemModal [name="total_qty"]').value);
+        const unit = document.querySelector('#addItemModal [name="unit"]').value.trim();
+        const responsible = document.querySelector('#addItemModal [name="responsible"]').value.trim();
+
+        if (!itemName || isNaN(totalQty) || !unit || !responsible) {
+            Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+            return;
+        }
+
+        const newItem = {
+            id: Date.now(),
+            item_name: itemName,
+            total_qty: totalQty,
+            unit: unit,
+            responsible: responsible,
+            created_at: new Date().toLocaleDateString('th-TH') // Store as string for display
+        };
+
+        const items = loadItems();
+        items.push(newItem);
+        saveItems(items);
+
+        // Reset form and close modal
+        document.querySelector('#addItemModal form').reset();
+        const addItemModalEl = document.getElementById('addItemModal');
+        const modal = bootstrap.Modal.getInstance(addItemModalEl);
+        modal.hide();
+
+        Swal.fire('เพิ่มสำเร็จ!', 'รายการอุปกรณ์ถูกเพิ่มเรียบร้อยแล้ว', 'success');
     });
-}
 
-// Handle add item form submission
-document.getElementById('addItemSubmitBtn').addEventListener('click', function(e) {
-    e.preventDefault(); // Prevent form submission
+    // Handle edit item form submission
+    document.getElementById('editItemSubmitBtn').addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent form submission
 
-    const itemName = document.querySelector('#addItemModal [name="item_name"]').value.trim();
-    const totalQty = parseInt(document.querySelector('#addItemModal [name="total_qty"]').value);
-    const unit = document.querySelector('#addItemModal [name="unit"]').value.trim();
-    const responsible = document.querySelector('#addItemModal [name="responsible"]').value.trim();
+        const itemId = parseInt(document.getElementById('edit_id').value);
+        const itemName = document.getElementById('edit_name').value.trim();
+        const totalQty = parseInt(document.getElementById('edit_qty').value);
+        const unit = document.getElementById('edit_unit').value.trim();
+        const responsible = document.getElementById('edit_responsible').value.trim();
 
-    if (!itemName || isNaN(totalQty) || !unit || !responsible) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
-        return;
-    }
+        if (isNaN(itemId) || !itemName || isNaN(totalQty) || !unit || !responsible) {
+            Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
+            return;
+        }
 
-    const newItem = {
-        id: Date.now(),
-        item_name: itemName,
-        total_qty: totalQty,
-        unit: unit,
-        responsible: responsible,
-        created_at: new Date().toLocaleDateString('th-TH') // Store as string for display
-    };
+        const items = loadItems();
+        const itemIndex = items.findIndex(item => item.id === itemId);
+        if (itemIndex === -1) {
+            Swal.fire('ไม่พบรายการที่ต้องการแก้ไข', '', 'error');
+            return;
+        }
 
-    const items = loadItems();
-    items.push(newItem);
-    saveItems(items);
+        // Update the item
+        items[itemIndex] = {
+            ...items[itemIndex],
+            item_name: itemName,
+            total_qty: totalQty,
+            unit: unit,
+            responsible: responsible,
+            // Keep the original created_at
+        };
 
-    // Reset form and close modal
-    document.querySelector('#addItemModal form').reset();
-    const addItemModalEl = document.getElementById('addItemModal');
-    const modal = bootstrap.Modal.getInstance(addItemModalEl);
-    modal.hide();
+        saveItems(items);
 
-    Swal.fire('เพิ่มสำเร็จ!', 'รายการอุปกรณ์ถูกเพิ่มเรียบร้อยแล้ว', 'success');
-});
+        // Reset form and close modal
+        document.querySelector('#editItemModal form').reset();
+        const editItemModalEl = document.getElementById('editItemModal');
+        const modal = bootstrap.Modal.getInstance(editItemModalEl);
+        modal.hide();
 
-// Handle edit item form submission
-document.getElementById('editItemSubmitBtn').addEventListener('click', function(e) {
-    e.preventDefault(); // Prevent form submission
+        Swal.fire('แก้ไขสำเร็จ!', 'รายการอุปกรณ์ถูกแก้ไขเรียบร้อยแล้ว', 'success');
+    });
 
-    const itemId = parseInt(document.getElementById('edit_id').value);
-    const itemName = document.getElementById('edit_name').value.trim();
-    const totalQty = parseInt(document.getElementById('edit_qty').value);
-    const unit = document.getElementById('edit_unit').value.trim();
-    const responsible = document.getElementById('edit_responsible').value.trim();
-
-    if (isNaN(itemId) || !itemName || isNaN(totalQty) || !unit || !responsible) {
-        Swal.fire('กรุณากรอกข้อมูลให้ครบถ้วน', '', 'warning');
-        return;
-    }
-
-    const items = loadItems();
-    const itemIndex = items.findIndex(item => item.id === itemId);
-    if (itemIndex === -1) {
-        Swal.fire('ไม่พบรายการที่ต้องการแก้ไข', '', 'error');
-        return;
-    }
-
-    // Update the item
-    items[itemIndex] = {
-        ...items[itemIndex],
-        item_name: itemName,
-        total_qty: totalQty,
-        unit: unit,
-        responsible: responsible,
-        // Keep the original created_at
-    };
-
-    saveItems(items);
-
-    // Reset form and close modal
-    document.querySelector('#editItemModal form').reset();
-    const editItemModalEl = document.getElementById('editItemModal');
-    const modal = bootstrap.Modal.getInstance(editItemModalEl);
-    modal.hide();
-
-    Swal.fire('แก้ไขสำเร็จ!', 'รายการอุปกรณ์ถูกแก้ไขเรียบร้อยแล้ว', 'success');
-});
-
-// Initial load
-renderTable();
+    // Initial load
+    renderTable();
 </script>
 </body>
 </html>

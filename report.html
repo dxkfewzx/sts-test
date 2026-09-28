@@ -167,6 +167,11 @@
 </div>
 
 <div class="main-content">
+    <div class="mobile-header">
+        <span class="fw-bold text-primary">SYSTEMS IT</span>
+        <button class="btn btn-light" id="sidebarToggleMobile"><i class="bi bi-list fs-4"></i></button>
+    </div>
+
     <div class="page-header">
         <div class="header-title">
             <h4>รายงานสรุป</h4>
@@ -282,10 +287,16 @@
 
 <script>
     const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
     const sidebar = document.getElementById('sidebar');
 
     if (sidebarToggle) {
         sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+        });
+    }
+    if (sidebarToggleMobile) {
+        sidebarToggleMobile.addEventListener('click', function() {
             sidebar.classList.toggle('active');
         });
     }
