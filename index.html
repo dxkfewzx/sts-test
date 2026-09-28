@@ -409,5 +409,19 @@ function fetchSerialNumbers(itemId) {
         });
 }
 </script>
+<script>
+document.getElementById('withdrawModal').addEventListener('show.bs.modal', function () {
+    const itemSelect = document.getElementById('item_select');
+    // Clear existing options
+    itemSelect.innerHTML = '<option value="">-- เลือกรายการ --</option>';
+    const items = loadItems();
+    items.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.item_name;
+        itemSelect.appendChild(opt);
+    });
+});
+</script>
 </body>
 </html>
