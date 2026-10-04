@@ -265,12 +265,11 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>ชื่อวัสดุ</th>
-                                        <th>ประเภท</th>
-                                        <th>จำนวนทั้งหมด</th>
-                                        <th>คงเหลือ</th>
-                                        <th>ถูกเบิกออก</th>
-                                        <th>อยู่ในซ่อม</th>
+                                        <th>หน่วยงาน/ชั้น/อาคาร</th>
+                                        <th>Serial Number</th>
+                                        <th>วันที่เบิก</th>
+                                        <th>ชื่อผู้เบิก</th>
+                                        <th>เลข Job</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -396,32 +395,47 @@
         });
     }
 
-    // Populate the summary table by item
+    // Populate the summary table with withdrawn serial numbers
     function populateSummaryTable(items, snRecords) {
         const tbody = document.querySelector('#summaryTable tbody');
         tbody.innerHTML = '';
 
-        if (items.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
+        // Filter for withdrawn SN records
+        const withdrawnRecords = snRecords.filter(sn => sn.status === 'Withdrawn');
+
+        if (withdrawnRecords.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center">ยังไม่มีข้อมูลการเบิกอุปกรณ์</td></tr>`;
             return;
         }
 
-        items.forEach((item, index) => {
-            const itemSN = snRecords.filter(sn => sn.item_id === item.id);
-            const totalSNItem = itemSN.length;
-            const availableSNItem = itemSN.filter(sn => sn.status === 'Available').length;
-            const withdrawnSNItem = itemSN.filter(sn => sn.status === 'Withdrawn').length;
-            const repairSNItem = itemSN.filter(sn => sn.status === 'Repair').length;
+        // Sort by withdraw date (newest first)
+        withdrawnRecords.sort((a, b) => new Date(b.withdraw_date) - new Date(a.withdraw_date));
+
+        withdrawnRecords.forEach((record, index) => {
+            // Find item name from item ID
+            const item = items.find(i => i.id === record.item_id);
+            const itemName = item ? item.item_name : 'ไม่ทราบชื่อ';
+
+            // Format date for display (YYYY-MM-DD to DD/MM/YYYY)
+            const withdrawDate = record.withdraw_date ?
+                new Date(record.withdraw_date).toLocaleDateString('th-TH') :
+                '-';
+
+            // Create location string: หน่วยงาน/ชั้น/อาคาร
+            const location = [
+                record.dept_used || '-',
+                record.floor || '-',
+                record.building || '-'
+            ].filter(part => part && part !== '-').join(' / ');
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${item.item_name}</td>
-                <td>${item.unit || '-'}</td>
-                <td>${item.total_qty}</td>
-                <td>${availableSNItem}</td>
-                <td>${withdrawnSNItem}</td>
-                <td>${repairSNItem}</td>
+                <td>${location || '-'}</td>
+                <td>${record.serial_number}</td>
+                <td>${withdrawDate}</td>
+                <td>${record.withdrawer_name || '-'}</td>
+                <td>${record.job_number || '-'}</td>
             `;
             tbody.appendChild(tr);
         });
