@@ -972,33 +972,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const buildingSelect = document.querySelector('select[name="building_info"]');
     const floorSelect    = document.querySelector('select[name="floor_info"]');
 
+    // Initialize with all data
     if (deptSelect)    populateSelect(deptSelect,    DEPT_LIST.map(r => r[0]));
     if (buildingSelect) {
         populateSelect(buildingSelect, BUILDING_LIST.map(r => r[1]));
-        // Add event listener for building selection to filter floors
+        // Add event listener for building selection to filter departments and floors
         buildingSelect.addEventListener('change', (e) => {
             const selectedBuilding = e.target.value;
-            if (!selectedBuilding) {
-                // If no building selected, show all floors or reset
-                populateSelect(floorSelect, FLOOR_LIST.map(r => r[2]));
-                return;
+
+            // Update department dropdown based on selected building
+            if (deptSelect) {
+                if (!selectedBuilding) {
+                    // If no building selected, show all departments
+                    populateSelect(deptSelect, DEPT_LIST.map(r => r[0]));
+                } else {
+                    // Filter LOCATION_RAW to get only entries for the selected building
+                    const buildingEntries = LOCATION_RAW.filter(entry => entry[1] === selectedBuilding);
+                    // Get unique departments for this building and sort them
+                    const deptsInBuilding = [...new Set(buildingEntries.map(entry => entry[0]))]
+                        .sort(); // Sort alphabetically
+                    populateSelect(deptSelect, deptsInBuilding);
+                }
             }
 
-            // Filter LOCATION_RAW to get only entries for the selected building
-            const buildingEntries = LOCATION_RAW.filter(entry => entry[1] === selectedBuilding);
-            // Get unique floors for this building and sort them
-            const floorsInBuilding = [...new Set(buildingEntries.map(entry => entry[2]))]
-                .sort((a, b) => {
-                    // Try to sort numerically if possible
-                    const numA = parseInt(a);
-                    const numB = parseInt(b);
-                    if (!isNaN(numA) && !isNaN(numB)) {
-                        return numA - numB;
-                    }
-                    // Fallback to string sort
-                    return a.localeCompare(b);
-                });
-            populateSelect(floorSelect, floorsInBuilding);
+            // Update floor dropdown based on selected building
+            if (floorSelect) {
+                if (!selectedBuilding) {
+                    // If no building selected, show all floors
+                    populateSelect(floorSelect, FLOOR_LIST.map(r => r[2]));
+                } else {
+                    // Filter LOCATION_RAW to get only entries for the selected building
+                    const buildingEntries = LOCATION_RAW.filter(entry => entry[1] === selectedBuilding);
+                    // Get unique floors for this building and sort them
+                    const floorsInBuilding = [...new Set(buildingEntries.map(entry => entry[2]))]
+                        .sort((a, b) => {
+                            // Try to sort numerically if possible
+                            const numA = parseInt(a);
+                            const numB = parseInt(b);
+                            if (!isNaN(numA) && !isNaN(numB)) {
+                                return numA - numB;
+                            }
+                            // Fallback to string sort
+                            return a.localeCompare(b);
+                        });
+                    populateSelect(floorSelect, floorsInBuilding);
+                }
+            }
         });
     }
     if (floorSelect)   populateSelect(floorSelect,   FLOOR_LIST.map(r => r[2]));
