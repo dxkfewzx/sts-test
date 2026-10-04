@@ -265,6 +265,7 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th>อุปกรณ์</th>
                                         <th>หน่วยงาน/ชั้น/อาคาร</th>
                                         <th>Serial Number</th>
                                         <th>วันที่เบิก</th>
@@ -404,7 +405,7 @@
         const withdrawnRecords = snRecords.filter(sn => sn.status === 'Withdrawn');
 
         if (withdrawnRecords.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center">ยังไม่มีข้อมูลการเบิกอุปกรณ์</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลการเบิกอุปกรณ์</td></tr>`;
             return;
         }
 
@@ -431,6 +432,7 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
+                <td>${itemName}</td>
                 <td>${location || '-'}</td>
                 <td>${record.serial_number}</td>
                 <td>${withdrawDate}</td>
