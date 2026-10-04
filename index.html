@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Update floor dropdown based on selected building
+            // Update floor dropdown based on selected building only (independent of department)
             if (floorSelect) {
                 if (!selectedBuilding) {
                     // If no building selected, show all floors
@@ -1018,8 +1018,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     populateSelect(floorSelect, floorsInBuilding);
                 }
             }
+
+            // Reset department and floor selections when building changes
+            if (deptSelect) deptSelect.value = '';
+            if (floorSelect) floorSelect.value = '';
         });
     }
+
+    // Department selection does NOT affect floor dropdown (they are independent)
+    // Floor selection does NOT affect department dropdown (they are independent)
+
+    // Initialize floor dropdown with all data
     if (floorSelect)   populateSelect(floorSelect,   FLOOR_LIST.map(r => r[2]));
 });
 </script>
