@@ -1025,8 +1025,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Add event listener for floor selection to filter departments
+    if (floorSelect) {
+        floorSelect.addEventListener('change', (e) => {
+            const selectedBuilding = buildingSelect.value;
+            const selectedFloor = e.target.value;
+
+            // Update department dropdown based on selected building and floor
+            if (deptSelect) {
+                if (!selectedBuilding || !selectedFloor) {
+                    // If no building or floor selected, show based on building only
+                    if (!selectedBuilding) {
+                        populateSelect(deptSelect, DEPT_LIST.map(r => r[0]));
+                    } else {
+                        // Show departments for selected building only
+                        const buildingEntries = LOCATION_RAW.filter(entry => entry[1] === selectedBuilding);
+                        const deptsInBuilding = [...new Set(buildingEntries.map(entry => entry[0]))]
+                            .sort(); // Sort alphabetically
+                        populateSelect(deptSelect, deptsInBuilding);
+                    }
+                } else {
+                    // Filter LOCATION_RAW to get entries for selected building AND floor
+                    const filteredEntries = LOCATION_RAW.filter(entry =>
+                        entry[1] === selectedBuilding && entry[2] === selectedFloor
+                    );
+                    // Get unique departments for this building-floor combination and sort them
+                    const filteredDepts = [...new Set(filteredEntries.map(entry => entry[0]))]
+                        .sort(); // Sort alphabetically
+                    populateSelect(deptSelect, filteredDepts);
+                }
+            }
+
+            // Reset department selection when floor changes
+            if (deptSelect) deptSelect.value = '';
+        });
+    }
+
     // Department selection does NOT affect floor dropdown (they are independent)
-    // Floor selection does NOT affect department dropdown (they are independent)
+    // Note: Floor selection DOES affect department dropdown (as implemented above)
 
     // Initialize floor dropdown with all data
     if (floorSelect)   populateSelect(floorSelect,   FLOOR_LIST.map(r => r[2]));
