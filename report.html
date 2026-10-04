@@ -384,6 +384,16 @@
 
         // Populate the summary table
         populateSummaryTable(items, snRecords);
+
+        // Log for debugging
+        console.log('Statistics updated:', {
+            totalItems: items.length,
+            totalSN: totalSN,
+            availableSN: availableSN,
+            withdrawnSN: withdrawnSN,
+            repairSN: repairSN,
+            totalRepairs: repairs.length
+        });
     }
 
     // Populate the summary table by item
@@ -406,9 +416,9 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td>${item.name}</td>
-                <td>${item.category || '-'}</td>
-                <td>${item.total}</td>
+                <td>${item.item_name}</td>
+                <td>${item.unit || '-'}</td>
+                <td>${item.total_qty}</td>
                 <td>${availableSNItem}</td>
                 <td>${withdrawnSNItem}</td>
                 <td>${repairSNItem}</td>
@@ -422,6 +432,13 @@
 
     // Initial load
     updateStatistics();
+
+    // Listen for storage changes to update statistics when data changes in other tabs/windows
+    window.addEventListener('storage', function(e) {
+        if (e.key === ITEMS_STORAGE_KEY || e.key === SN_STORAGE_KEY || e.key === REPAIR_STORAGE_KEY) {
+            updateStatistics();
+        }
+    });
 </script>
 </body>
 </html>

@@ -664,10 +664,11 @@ document.querySelector('#withdrawModal form').addEventListener('submit', functio
         showConfirmButton: false
     });
 
-    // Trigger dashboard update via storage event
-    window.dispatchEvent(new StorageEvent('storage', {
-        key: SN_STORAGE_KEY
-    }));
+    // Update dashboard in the same tab
+    renderDashboard();
+
+    // Note: The storage event will fire automatically in other tabs when localStorage changes
+    // No need to manually dispatch it
 });
 </script>
 <script>
