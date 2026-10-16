@@ -152,6 +152,7 @@
         }
     </style>
 </head>
+
 <body>
 
 <div class="mobile-header">
@@ -391,9 +392,9 @@ async function populateRepairTable() {
 
     // Add event listeners for delete buttons
     document.querySelectorAll('.btn-del-repair').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', async function() {
             const repairId = parseInt(this.getAttribute('data-id'));
-            confirmDeleteRepair(repairId);
+            await confirmDeleteRepair(repairId);
         });
     });
 }
@@ -433,36 +434,42 @@ async function alertAddRepair() {
         return false;
     }
 
-    const repairs = await loadRepairs();
     const newRepair = {
-        id: Date.now(),
         device_name: deviceName,
         symptom: symptom,
         status: 'Pending',
         created_at: new Date().toISOString()
     };
-    const updatedRepairs = [...repairs, newRepair];
-    await saveRepairs(updatedRepairs);
 
-    // Reset form
-    document.querySelector('#addRepairModal form').reset();
+    try {
+        // Add the new repair directly using dbService.addRepair
+        await dbService.addRepair(newRepair);
 
-    Swal.fire({
-        title: 'บันทึกสำเร็จ!',
-        text: 'เพิ่มเรื่องซ่อมใหม่เรียบร้อยแล้ว',
-        icon: 'success',
-        confirmButtonText: 'ตกลง'
-    });
+        // Reset form
+        document.querySelector('#addRepairModal form').reset();
 
-    // Re-populate the table
-    await populateRepairTable();
+        Swal.fire({
+            title: 'บันทึกสำเร็จ!',
+            text: 'เพิ่มเรื่องซ่อมใหม่เรียบร้อยแล้ว',
+            icon: 'success',
+            confirmButtonText: 'ตกลง'
+        });
 
-    return false; // Prevent form submission
+        // Re-populate the table and update status counts
+        await populateRepairTable();
+        await updateStatusCounts();
+
+        return false; // Prevent form submission
+    } catch (error) {
+        console.error('Error adding repair:', error);
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+        return false;
+    }
 }
 
 // Handle delete repair
-function confirmDeleteRepair(repairId) {
-    Swal.fire({
+async function confirmDeleteRepair(repairId) {
+    const result = await Swal.fire({
         title: 'ยืนยันการลบ?',
         text: "ประวัติการซ่อมนี้จะถูกลบออกจากระบบถาวร",
         icon: 'warning',
@@ -470,19 +477,22 @@ function confirmDeleteRepair(repairId) {
         confirmButtonColor: '#ea5455',
         confirmButtonText: 'ลบข้อมูล',
         cancelButtonText: 'ยกเลิก'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const repairs = loadRepairs();
-            const repairIndex = repairs.findIndex(r => r.id === repairId);
-            if (repairIndex !== -1) {
-                const updatedRepairs = [...repairs.slice(0, repairIndex), ...repairs.slice(repairIndex + 1)];
-                saveRepairs(updatedRepairs);
-                Swal.fire('ลบข้อมูลสำเร็จ', 'ประวัติการซ่อมถูกลบแล้ว', 'success');
-                // Re-populate the table
-                populateRepairTable();
-            }
-        }
     });
+
+    if (result.isConfirmed) {
+        try {
+            // Delete the repair directly using dbService.deleteRepair
+            await dbService.deleteRepair(repairId);
+
+            Swal.fire('ลบข้อมูลสำเร็จ', 'ประวัติการซ่อมถูกลบแล้ว', 'success');
+            // Re-populate the table and update status counts
+            await populateRepairTable();
+            await updateStatusCounts();
+        } catch (error) {
+            console.error('Error deleting repair:', error);
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบข้อมูลได้', 'error');
+        }
+    }
 }
 
 // Initial load
