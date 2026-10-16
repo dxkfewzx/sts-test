@@ -157,3 +157,34 @@
 
 ---
 *งานเสร็จสิ้นเมื่อวันที่ 2026-10-04*
+
+## สรุปการแก้ไข HTTP ERROR 405 ล่าสุด (2026-10-17)
+
+ตามคำขอของผู้ใช้ เราได้แก้ไขปัญหา HTTP ERROR 405 (Method Not Allowed) ที่เกิดขึ้นเมื่อบันทึกข้อมูลใน `repair_details.html` และ `details.html`:
+
+### 🔧 รายละเอียดการแก้ไข:
+
+#### 1. **repair_details.html** (ประวัติแจ้งซ่อม):
+- **แก้ไข `alertAddRepair()`**: เปลี่ยนจากการใช้ `saveRepairs()` ที่ไม่ถูกต้อง เป็นการใช้ `dbService.addRepair()` โดยตรงสำหรับการเพิ่มข้อมูลใหม่ (INSERT operation)
+- **แก้ไข `confirmDeleteRepair()`**: เปลี่ยนจากการใช้ `loadRepairs()` และ `saveRepairs()` ที่ไม่ถูกต้อง เป็นการใช้ `dbService.deleteRepair()` โดยตรงพร้อม ID ที่ถูกต้อง (DELETE operation)
+- **ปรับปรุงการจัดการ async/await**: ทำให้ฟังก์ชันทั้งหมดที่เรียก Supabase ใช้ `await` อย่างถูกต้อง รวมถึง event listeners สำหรับปุ่มลบ
+
+#### 2. **details.html** (จัดการหมายเลขซีเรียล):
+- **แก้ไขปัญหาตัวแปรซ้ำ**: ในฟังก์ชัน `alertBulkSN()` แก้ไขการประกาศตัวแปร `items` ซ้ำโดยการลบบรรทัด `const items = await loadItems();` ที่ซ้ำกัน
+- **ตรวจสอบการใช้งาน Supabase methods ที่ถูกต้อง**:
+  - `alertBulkSN()` ใช้ `dbService.addSerialNumber()` สำหรับการเพิ่ม SN ใหม่ (INSERT)
+  - `alertEditSN()` ใช้ `dbService.updateSerialNumber()` พร้อม SN ID ที่ถูกต้องสำหรับการอัปเดตข้อมูล (UPDATE)
+  - `confirmDeleteSN()` ใช้ `dbService.deleteSerialNumber()` พร้อม SN ID ที่ถูกต้องสำหรับการลบข้อมูล (DELETE)
+
+#### 3. **การทำความสะอาดตามคำขอ**:
+- ลบไฟล์สรุปการแก้ไขเก่า: `FINAL_SUMMARY.md`, `DETAILS_FIX_SUMMARY.md`, `IMPLEMENTATION_SUMMARY.md`, `REPAIR_FIX_SUMMARY.md`
+- อัปเดตไฟล์นี้ (`workflow.md`) เพื่อบันทึกการแก้ไขล่าสุด
+
+### 🚀 ผลลัพธ์:
+- ระบบตอนนี้ใช้วิธีการทำงานกับ Supabase ที่ถูกต้อง (INSERT/UPDATE/DELETE)
+- มีการจัดการ async/await ที่เหมาะสมทั่วทั้งระบบ
+- รักษากลไกสำรอง localStorage ไว้สำหรับการย้ายข้อมูล
+- ข้อมูลการบันทึกในทั้งสองหน้าต่างทำงานได้อย่างถูกต้องโดยไม่เกิด HTTP ERROR 405 อีกต่อไป
+
+---
+*งานเสร็จสิ้นเมื่อวันที่ 2026-10-17*

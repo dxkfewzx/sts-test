@@ -571,7 +571,6 @@
 
             // Update the item's available count (since all new SNs are Available)
             // Fetch current item to get available count, then add the new count
-            const items = await loadItems();
             const item = items.find(i => i.id === itemId);
             if (item) {
                 const newAvailableCount = (item.available || 0) + addedCount;
@@ -661,7 +660,6 @@
         await saveSNRecords(updatedSnRecords);
 
         // Update the item's available count if the status changed between Available and Withdrawn
-        const items = await loadItems();
         const item = items.find(i => i.id === itemId);
         if (item) {
             let availableDelta = 0;
