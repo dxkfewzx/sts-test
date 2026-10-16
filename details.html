@@ -386,23 +386,23 @@
                 }
             }
             // Update the SN count badge on the details page
-            updateSnCountBadge();
+            await updateSnCountBadge();
         } catch (error) {
             console.error('Error saving SN records to Supabase:', error);
             // Fallback to localStorage if Supabase fails
             localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
             // Update the SN count badge on the details page
-            updateSnCountBadge();
+            await updateSnCountBadge();
         }
     }
 
     // Update the SN count badge in the details page header
-    function updateSnCountBadge() {
+    async function updateSnCountBadge() {
         const urlParams = new URLSearchParams(window.location.search);
         const itemId = parseInt(urlParams.get('id'));
         if (isNaN(itemId)) return;
 
-        const snRecords = loadSNRecords();
+        const snRecords = await loadSNRecords();
         const itemSnCount = snRecords.filter(sn => sn.item_id === itemId).length;
         document.getElementById('total-sn-count').textContent = `รวม ${itemSnCount} เครื่อง`;
     }
@@ -570,10 +570,15 @@
             }
 
             // Update the item's available count (since all new SNs are Available)
-            await dbService.updateItem(itemId, {
-                // We'll need to fetch the item first to get current available count
-                // For simplicity, we'll recalculate based on SN records
-            });
+            // Fetch current item to get available count, then add the new count
+            const items = await loadItems();
+            const item = items.find(i => i.id === itemId);
+            if (item) {
+                const newAvailableCount = (item.available || 0) + addedCount;
+                await dbService.updateItem(itemId, {
+                    available: newAvailableCount
+                });
+            }
 
             // Reset form
             document.querySelector('#addBulkSNModal form').reset();
@@ -597,7 +602,7 @@
     }
 
     // Handle SN edit
-    function alertEditSN() {
+    async function alertEditSN() {
         const urlParams = new URLSearchParams(window.location.search);
         const itemId = parseInt(urlParams.get('id'));
         if (isNaN(itemId)) {
@@ -611,7 +616,7 @@
             return false;
         }
 
-        const snRecords = loadSNRecords();
+        const snRecords = await loadSNRecords();
         const snIndex = snRecords.findIndex(sn => sn.id === snId);
         if (snIndex === -1) {
             Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบข้อมูล SN ที่ต้องการแก้ไข', 'error');
@@ -653,10 +658,10 @@
         // Update the SN record
         const updatedSnRecords = [...snRecords];
         updatedSnRecords[snIndex] = updatedSn;
-        saveSNRecords(updatedSnRecords);
+        await saveSNRecords(updatedSnRecords);
 
         // Update the item's available count if the status changed between Available and Withdrawn
-        const items = loadItems();
+        const items = await loadItems();
         const item = items.find(i => i.id === itemId);
         if (item) {
             let availableDelta = 0;
@@ -672,7 +677,7 @@
                     }
                     return i;
                 });
-                saveItems(updatedItems);
+                await saveItems(updatedItems);
             }
         }
 
@@ -688,7 +693,7 @@
         });
 
         // Re-populate the table
-        populateSnTable();
+        await populateSnTable();
 
         return false; // Prevent form submission
     }

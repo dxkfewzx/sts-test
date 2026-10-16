@@ -310,8 +310,8 @@ async function saveRepairs(repairs) {
 }
 
 // Update the status count badges
-function updateStatusCounts() {
-    const repairs = loadRepairs();
+async function updateStatusCounts() {
+    const repairs = await loadRepairs();
     const counts = {
         pending: repairs.filter(r => r.status === 'Pending').length,
         repairing: repairs.filter(r => r.status === 'Repairing').length,
@@ -325,8 +325,8 @@ function updateStatusCounts() {
 }
 
 // Populate the repair table
-function populateRepairTable() {
-    const repairs = loadRepairs();
+async function populateRepairTable() {
+    const repairs = await loadRepairs();
     const tbody = document.querySelector('#repairTable tbody');
     const emptyState = document.getElementById('emptyState');
 
@@ -424,7 +424,7 @@ document.getElementById('addRepairBtn').addEventListener('click', function() {
 });
 
 // Handle add repair form submission
-function alertAddRepair() {
+async function alertAddRepair() {
     const deviceName = document.querySelector('#addRepairModal [name="device_name"]').value.trim();
     const symptom = document.querySelector('#addRepairModal [name="symptom"]').value.trim();
 
@@ -433,7 +433,7 @@ function alertAddRepair() {
         return false;
     }
 
-    const repairs = loadRepairs();
+    const repairs = await loadRepairs();
     const newRepair = {
         id: Date.now(),
         device_name: deviceName,
@@ -442,7 +442,7 @@ function alertAddRepair() {
         created_at: new Date().toISOString()
     };
     const updatedRepairs = [...repairs, newRepair];
-    saveRepairs(updatedRepairs);
+    await saveRepairs(updatedRepairs);
 
     // Reset form
     document.querySelector('#addRepairModal form').reset();
@@ -455,7 +455,7 @@ function alertAddRepair() {
     });
 
     // Re-populate the table
-    populateRepairTable();
+    await populateRepairTable();
 
     return false; // Prevent form submission
 }
@@ -486,14 +486,15 @@ function confirmDeleteRepair(repairId) {
 }
 
 // Initial load
-populateRepairTable();
-updateStatusCounts();
+populateRepairTable().then(() => {
+    updateStatusCounts();
+});
 
 // Listen for storage events to update when repairs change from other tabs/windows
-window.addEventListener('storage', function(e) {
+window.addEventListener('storage', async function(e) {
     if (e.key === REPAIR_STORAGE_KEY) {
-        populateRepairTable();
-        updateStatusCounts();
+        await populateRepairTable();
+        await updateStatusCounts();
     }
 });
 </script>
