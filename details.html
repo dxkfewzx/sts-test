@@ -201,6 +201,7 @@
                         <th style="width: 12%;" class="hide-mobile">เลข Job</th>
                         <th style="width: 15%;" class="hide-mobile">หน่วยงาน</th>
                         <th style="width: 12%;">ผู้เบิก</th>
+                        <th style="width: 12%;">วันที่เบิก</th>
                         <th style="width: 10%;">จัดการ</th>
                     </tr>
                 </thead>
@@ -457,6 +458,9 @@
                     <small>${sn.building || ''} ชั้น ${sn.floor || ''}</small>
                 </td>
                 <td class="fw-600">${sn.withdrawer_name || '-'}</td>
+                <td class="text-muted small">
+                    ${sn.withdraw_date ? new Date(sn.withdraw_date).toLocaleDateString('th-TH') : '-'}
+                </td>
                 <td>
                     <div class="d-flex justify-content-center gap-1">
                         <button class="btn-circle btn-edit-sn"
@@ -628,6 +632,17 @@
             building: document.querySelector('#editSNModal [name="building"]').value.trim(),
             floor: document.querySelector('#editSNModal [name="floor"]').value.trim()
         };
+
+        // Handle withdraw date logic
+        // If status changed to Withdrawn, set withdraw_date to today
+        // If status changed from Withdrawn to something else, clear withdraw_date
+        if (sn.status !== 'Withdrawn' && updatedSn.status === 'Withdrawn') {
+            // Changing TO Withdrawn - set withdraw date to today (YYYY-MM-DD)
+            updatedSn.withdraw_date = new Date().toISOString().split('T')[0];
+        } else if (sn.status === 'Withdrawn' && updatedSn.status !== 'Withdrawn') {
+            // Changing FROM Withdrawn - clear withdraw date
+            updatedSn.withdraw_date = null;
+        }
 
         // Validate
         if (!updatedSn.serial_number || !updatedSn.brand) {
