@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Supabase JS library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Our Supabase service layer -->
+    <script src="supabase.js"></script>
     <style>
         :root {
             --primary-blue: #4e73df;
@@ -256,30 +260,53 @@ document.getElementById('sidebarToggle').addEventListener('click', function() {
     document.getElementById('sidebar').classList.toggle('active');
 });
 
-// Storage key for repairs
+// Storage key for repairs (keeping for migration compatibility)
 const REPAIR_STORAGE_KEY = 'repairRecords';
 
-// Load repairs from localStorage
-function loadRepairs() {
-    const stored = localStorage.getItem(REPAIR_STORAGE_KEY);
-    if (stored) {
-        try {
-            return JSON.parse(stored);
-        } catch (e) {
-            console.error('Failed to parse repair records', e);
-            return [];
+// Load repairs from Supabase (with fallback to localStorage for migration)
+async function loadRepairs() {
+    try {
+        const repairs = await dbService.getRepairs();
+        // Ensure we always return an array
+        return Array.isArray(repairs) ? repairs : [];
+    } catch (error) {
+        console.error('Error loading repairs from Supabase:', error);
+        // Fallback to localStorage if Supabase fails
+        const stored = localStorage.getItem(REPAIR_STORAGE_KEY);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error('Failed to parse repair records from localStorage', e);
+                return [];
+            }
         }
+        return [];
     }
-    return [];
 }
 
-// Save repairs to localStorage
-function saveRepairs(repairs) {
-    localStorage.setItem(REPAIR_STORAGE_KEY, JSON.stringify(repairs));
-    // Update the status counts
-    updateStatusCounts();
-    // Dispatch an event so other tabs can listen if needed
-    window.dispatchEvent(new StorageEvent('storage', { key: REPAIR_STORAGE_KEY, newValue: JSON.stringify(repairs) }));
+// Save repairs to Supabase (with fallback to localStorage for migration)
+async function saveRepairs(repairs) {
+    try {
+        // For bulk save, we'll save each repair individually
+        // In a real app, you might want to implement bulk operations
+        for (const repair of repairs) {
+            if (repair.id) {
+                await dbService.updateRepair(repair.id, repair);
+            } else {
+                await dbService.addRepair(repair);
+            }
+        }
+        // Update the status counts
+        updateStatusCounts();
+    } catch (error) {
+        console.error('Error saving repairs to Supabase:', error);
+        // Fallback to localStorage if Supabase fails
+        localStorage.setItem(REPAIR_STORAGE_KEY, JSON.stringify(repairs));
+        // Update the status counts
+        updateStatusCounts();
+    }
 }
 
 // Update the status count badges
@@ -372,16 +399,13 @@ function populateRepairTable() {
 }
 
 // Update repair status
-function updateRepairStatus(repairId, newStatus) {
-    const repairs = loadRepairs();
-    const repairIndex = repairs.findIndex(r => r.id === repairId);
-    if (repairIndex === -1) {
-        console.error('Repair not found:', repairId);
-        return;
+async function updateRepairStatus(repairId, newStatus) {
+    try {
+        await dbService.updateRepair(repairId, { status: newStatus });
+    } catch (error) {
+        console.error('Error updating repair status:', error);
+        throw error;
     }
-    const updatedRepairs = [...repairs];
-    updatedRepairs[repairIndex] = { ...updatedRepairs[repairIndex], status: newStatus };
-    saveRepairs(updatedRepairs);
 }
 
 // Handle status change from dropdown

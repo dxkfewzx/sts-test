@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Supabase JS library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Our Supabase service layer -->
+    <script src="supabase.js"></script>
 
     <style>
         :root {
@@ -195,7 +199,7 @@
     });
 </script>
 <script>
-    // Storage keys
+    // Storage keys (keeping for migration compatibility)
     const ITEMS_STORAGE_KEY = 'inventoryItems';
     const SN_STORAGE_KEY = 'snRecords';
 
@@ -213,43 +217,61 @@
         return ITEM_TO_SN_MAP[itemName] || [];
     }
 
-    // Load items from localStorage
-    function loadItems() {
-        const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse inventory items', e);
-                return [];
+    // Load items from Supabase (with fallback to localStorage for migration)
+    async function loadItems() {
+        try {
+            const items = await dbService.getItems();
+            // Ensure we always return an array
+            return Array.isArray(items) ? items : [];
+        } catch (error) {
+            console.error('Error loading items from Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    console.error('Failed to parse inventory items from localStorage', e);
+                    return [];
+                }
             }
+            return [];
         }
-        return [];
     }
 
-    // Load SN records from localStorage
-    function loadSNRecords() {
-        const stored = localStorage.getItem(SN_STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse SN records', e);
-                return [];
+    // Load SN records from Supabase (with fallback to localStorage for migration)
+    async function loadSNRecords() {
+        try {
+            const snRecords = await dbService.getSerialNumbers();
+            // Ensure we always return an array
+            return Array.isArray(snRecords) ? snRecords : [];
+        } catch (error) {
+            console.error('Error loading SN records from Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            const stored = localStorage.getItem(SN_STORAGE_KEY);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    console.error('Failed to parse SN records from localStorage', e);
+                    return [];
+                }
             }
+            return [];
         }
-        return [];
     }
 
     // Get available serial numbers for an item - replicates the logic from details.html
-    function getAvailableSerialNumbers(itemId) {
+    async function getAvailableSerialNumbers(itemId) {
         console.log('getAvailableSerialNumbers called for itemId:', itemId);
 
         // Convert to number for consistent comparison (matching details.html exactly)
         const itemIdNum = parseInt(itemId);
 
         // Get item from items (for validation and name)
-        const items = loadItems();
+        const items = await loadItems();
         const item = items.find(i => i.id === itemIdNum);
         if (!item) {
             console.warn('Item not found for id:', itemId);
@@ -260,7 +282,7 @@
 
         // EXACTLY replicate how details.html gets SNs for an item
         // From details.html: const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
-        const snRecords = loadSNRecords();
+        const snRecords = await loadSNRecords();
         const itemSnRecords = snRecords.filter(sn =>
             sn.item_id === itemIdNum  // Match details.html's comparison exactly
         );
@@ -294,106 +316,175 @@
     }
 
     // Render dashboard table
-    function renderDashboard() {
-        const items = loadItems();
-        const snRecords = loadSNRecords(); // Load SN records to calculate withdrawn items
-        const tbody = document.getElementById('dashboardTableBody');
-        tbody.innerHTML = '';
+    async function renderDashboard() {
+        try {
+            const items = await loadItems();
+            const snRecords = await loadSNRecords(); // Load SN records to calculate withdrawn items
+            const tbody = document.getElementById('dashboardTableBody');
+            tbody.innerHTML = '';
 
-        if (items.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
-            return;
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center">ยังไม่มีข้อมูลวัสดุในระบบ</td></tr>`;
+                return;
+            }
+
+            items.forEach((item, index) => {
+                // Calculate withdrawn items for this equipment - match details.html logic exactly
+                const withdrawnCount = snRecords.filter(sn =>
+                    sn.item_id === item.id && sn.status === 'Withdrawn'
+                ).length;
+
+                const remainingCount = item.total_qty - withdrawnCount;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-muted fw-bold">${String(index + 1).padStart(2, '0')}</td>
+                    <td class="text-start fw-600">${item.item_name}</td>
+                    <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">${item.responsible || '-'}</span></td>
+                    <td class="fw-bold">${item.total_qty}</td>
+                    <td class="text-warning fw-bold">${withdrawnCount}</td>
+                    <td class="fw-bold">${remainingCount}</td>
+                    <td>
+                        <a href="details.html?id=${item.id}" class="btn-action">
+                            <i class="bi bi-search"></i>
+                        </a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error rendering dashboard:', error);
+            document.getElementById('dashboardTableBody').innerHTML = `<tr><td colspan="7" class="text-center">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
         }
-
-        items.forEach((item, index) => {
-            // Calculate withdrawn items for this equipment - match details.html logic exactly
-            const withdrawnCount = snRecords.filter(sn =>
-                sn.item_id === item.id && sn.status === 'Withdrawn'
-            ).length;
-
-            const remainingCount = item.total_qty - withdrawnCount;
-
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="text-muted fw-bold">${String(index + 1).padStart(2, '0')}</td>
-                <td class="text-start fw-600">${item.item_name}</td>
-                <td><span class="badge-soft" style="background: #e0e8ff; color: #4e73df;">${item.responsible || '-'}</span></td>
-                <td class="fw-bold">${item.total_qty}</td>
-                <td class="text-warning fw-bold">${withdrawnCount}</td>
-                <td class="fw-bold">${remainingCount}</td>
-                <td>
-                    <a href="details.html?id=${item.id}" class="btn-action">
-                        <i class="bi bi-search"></i>
-                    </a>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
     }
 
     // Handle add item form submission (from inventory_list.html) - we need to update dashboard when items added
-    // We'll listen for storage changes via storage event
+    // We'll listen for storage changes via storage event (keeping for backward compatibility)
     window.addEventListener('storage', function(e) {
         if (e.key === ITEMS_STORAGE_KEY || e.key === SN_STORAGE_KEY) {
             renderDashboard();
         }
     });
 
-    // Initialize test data if none exists
-    function initializeTestData() {
-        // Initialize items if not present
-        if (!localStorage.getItem(ITEMS_STORAGE_KEY)) {
-            const testItems = [
-                { id: 1, item_name: 'คอมพิวเตอร์ตั้งโต๊ะ', total_qty: 10, unit: 'เครื่อง', responsible: 'ธีรภัทร์', created_at: '28/09/2026' },
-                { id: 2, item_name: 'แล็ปท็อป', total_qty: 15, unit: 'เครื่อง', responsible: 'สมศรี', created_at: '28/09/2026' },
-                { id: 3, item_name: 'จอภาพ', total_qty: 20, unit: 'ตัว', responsible: 'สมหมาย', created_at: '28/09/2026' },
-                { id: 4, item_name: 'เครื่องพิมพ์', total_qty: 8, unit: 'เครื่อง', responsible: 'สมพงษ์', created_at: '28/09/2026' },
-                { id: 5, item_name: 'อุปกรณ์เครือข่าย', total_qty: 12, unit: 'ชุด', responsible: 'สมไทย', created_at: '28/09/2026' }
-            ];
-            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(testItems));
-        }
+    // Initialize test data if none exists (migration from localStorage to Supabase)
+    async function initializeTestData() {
+        try {
+            // Check if we have items in Supabase
+            const items = await dbService.getItems();
 
-        // Initialize SN records if not present
-        if (!localStorage.getItem(SN_STORAGE_KEY)) {
-            // Create some sample SN records for testing that match the PHP sample data pattern
-            const sampleSNRecords = [];
+            // If no items in Supabase, check localStorage for migration
+            if (items.length === 0) {
+                const localStorageItems = localStorage.getItem(ITEMS_STORAGE_KEY);
+                if (localStorageItems) {
+                    try {
+                        const parsedItems = JSON.parse(localStorageItems);
+                        // Migrate items to Supabase
+                        for (const item of parsedItems) {
+                            await dbService.addItem({
+                                item_name: item.item_name,
+                                total_qty: item.total_qty,
+                                unit: item.unit,
+                                responsible: item.responsible,
+                                created_at: item.created_at
+                            });
+                        }
+                        console.log('Migrated items from localStorage to Supabase');
+                    } catch (e) {
+                        console.error('Error parsing localStorage items:', e);
+                    }
+                }
+            }
 
-            // Match the exact pattern from the original PHP fetch_sn.php
-            const itemSNMap = {
-                1: ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
-                2: ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
-                3: ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
-                4: ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
-                5: ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578', 'SN005234579', 'SN005234580']
-            };
+            // Check if we have SN records in Supabase
+            const snRecords = await dbService.getSerialNumbers();
 
-            Object.keys(itemSNMap).forEach(itemId => {
-                const snList = itemSNMap[itemId];
-                snList.forEach((sn, index) => {
-                    sampleSNRecords.push({
-                        id: Date.now() + index, // Simple ID generation
-                        item_id: parseInt(itemId),
-                        serial_number: sn,
-                        brand: '', // Empty for sample data
-                        status: 'Available', // All start as Available
-                        job_number: '',
-                        withdrawer_name: '',
-                        dept_used: '',
-                        building: '',
-                        floor: '',
-                        receive_date: '2026-09-28',
-                        withdraw_date: null
+            // If no SN records in Supabase, check localStorage for migration
+            if (snRecords.length === 0) {
+                const localStorageSN = localStorage.getItem(SN_STORAGE_KEY);
+                if (localStorageSN) {
+                    try {
+                        const parsedSN = JSON.parse(localStorageSN);
+                        // Migrate SN records to Supabase
+                        for (const sn of parsedSN) {
+                            await dbService.addSerialNumber({
+                                item_id: sn.item_id,
+                                serial_number: sn.serial_number,
+                                brand: sn.brand || '',
+                                status: sn.status || 'Available',
+                                job_number: sn.job_number || '',
+                                withdrawer_name: sn.withdrawer_name || '',
+                                dept_used: sn.dept_used || '',
+                                building: sn.building || '',
+                                floor: sn.floor || '',
+                                receive_date: sn.receive_date,
+                                withdraw_date: sn.withdraw_date
+                            });
+                        }
+                        console.log('Migrated SN records from localStorage to Supabase');
+                    } catch (e) {
+                        console.error('Error parsing localStorage SN records:', e);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error during data initialization/migration:', error);
+            // Fallback to localStorage initialization if Supabase is not available
+            // Initialize items if not present
+            if (!localStorage.getItem(ITEMS_STORAGE_KEY)) {
+                const testItems = [
+                    { id: 1, item_name: 'คอมพิวเตอร์ตั้งโต๊ะ', total_qty: 10, unit: 'เครื่อง', responsible: 'ธีรภัทร์', created_at: '28/09/2026' },
+                    { id: 2, item_name: 'แล็ปท็อป', total_qty: 15, unit: 'เครื่อง', responsible: 'สมศรี', created_at: '28/09/2026' },
+                    { id: 3, item_name: 'จอภาพ', total_qty: 20, unit: 'ตัว', responsible: 'สมหมาย', created_at: '28/09/2026' },
+                    { id: 4, item_name: 'เครื่องพิมพ์', total_qty: 8, unit: 'เครื่อง', responsible: 'สมพงษ์', created_at: '28/09/2026' },
+                    { id: 5, item_name: 'อุปกรณ์เครือข่าย', total_qty: 12, unit: 'ชุด', responsible: 'สมไทย', created_at: '28/09/2026' }
+                ];
+                localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(testItems));
+            }
+
+            // Initialize SN records if not present
+            if (!localStorage.getItem(SN_STORAGE_KEY)) {
+                // Create some sample SN records for testing that match the PHP sample data pattern
+                const sampleSNRecords = [];
+
+                // Match the exact pattern from the original PHP fetch_sn.php
+                const itemSNMap = {
+                    1: ['SN001234567', 'SN001234568', 'SN001234569', 'SN001234570', 'SN001234571', 'SN001234572'],
+                    2: ['SN002234567', 'SN002234568', 'SN002234569', 'SN002234570', 'SN002234571', 'SN002234572', 'SN002234573', 'SN002234574', 'SN002234575', 'SN002234576', 'SN002234577', 'SN002234578', 'SN002234579', 'SN002234580', 'SN002234581'],
+                    3: ['SN003234567', 'SN003234568', 'SN003234569', 'SN003234570', 'SN003234571'],
+                    4: ['SN004234567', 'SN004234568', 'SN004234569', 'SN004234570'],
+                    5: ['SN005234567', 'SN005234568', 'SN005234569', 'SN005234570', 'SN005234571', 'SN005234572', 'SN005234573', 'SN005234574', 'SN005234575', 'SN005234576', 'SN005234577', 'SN005234578', 'SN005234579', 'SN005234580']
+                };
+
+                Object.keys(itemSNMap).forEach(itemId => {
+                    const snList = itemSNMap[itemId];
+                    snList.forEach((sn, index) => {
+                        sampleSNRecords.push({
+                            id: Date.now() + index, // Simple ID generation
+                            item_id: parseInt(itemId),
+                            serial_number: sn,
+                            brand: '', // Empty for sample data
+                            status: 'Available', // All start as Available
+                            job_number: '',
+                            withdrawer_name: '',
+                            dept_used: '',
+                            building: '',
+                            floor: '',
+                            receive_date: '2026-09-28',
+                            withdraw_date: null
+                        });
                     });
                 });
-            });
 
-            localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(sampleSNRecords));
+                localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(sampleSNRecords));
+            }
         }
     }
 
     // Initial load
-    initializeTestData();
-    renderDashboard();
+    (async () => {
+        await initializeTestData();
+        await renderDashboard();
+    })();
 </script>
 
 <script>

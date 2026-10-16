@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <script src="init-supabase.js"></script>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <div id="status">Testing connection...</div>
+    <div id="result"></div>
+
+    <script>
+        // Test Supabase connection
+        async function testConnection() {
+            const statusEl = document.getElementById('status');
+            const resultEl = document.getElementById('result');
+
+            try {
+                statusEl.textContent = 'Testing Supabase connection...';
+                const isConnected = await testSupabaseConnection();
+
+                if (isConnected) {
+                    statusEl.textContent = 'Connection successful!';
+                    resultEl.innerHTML = '<p style="color: green;">✅ Supabase connection is working correctly</p>';
+
+                    // Initialize supabase for testing query
+                    const supabase = window.initSupabase();
+                    if (!supabase) {
+                        throw new Error('Failed to initialize Supabase client for query test');
+                    }
+
+                    // Test basic query
+                    statusEl.textContent = 'Testing data query...';
+                    const { data, error } = await supabase
+                        .from('inventory_items')
+                        .select('*')
+                        .limit(1);
+
+                    if (error) {
+                        throw error;
+                    }
+
+                    resultEl.innerHTML += `<p>📊 Found ${data.length} items in inventory_items table</p>`;
+                } else {
+                    statusEl.textContent = 'Connection failed!';
+                    resultEl.innerHTML = '<p style="color: red;">❌ Failed to connect to Supabase</p>';
+                }
+            } catch (error) {
+                statusEl.textContent = 'Error occurred!';
+                resultEl.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+                console.error('Supabase test error:', error);
+            }
+        }
+
+        // Run test
+        testConnection();
+    </script>
+</body>
+</html>

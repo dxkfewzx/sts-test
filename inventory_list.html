@@ -7,6 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <!-- Supabase JS library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Our Supabase service layer -->
+    <script src="supabase.js"></script>
 
     <style>
         :root {
@@ -296,33 +300,57 @@
         document.getElementById('sidebar').classList.toggle('active');
     });
 
-    // Storage key for inventory items
+    // Storage key for inventory items (keeping for migration compatibility)
     const STORAGE_KEY = 'inventoryItems';
 
-    // Load items from localStorage
-    function loadItems() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse inventory items', e);
-                return [];
+    // Load items from Supabase (with fallback to localStorage for migration)
+    async function loadItems() {
+        try {
+            const items = await dbService.getItems();
+            // Ensure we always return an array
+            return Array.isArray(items) ? items : [];
+        } catch (error) {
+            console.error('Error loading items from Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    console.error('Failed to parse inventory items from localStorage', e);
+                    return [];
+                }
             }
+            return [];
         }
-        return [];
     }
 
-    // Save items to localStorage
-    function saveItems(items) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-        // Update the table
-        renderTable();
+    // Save items to Supabase (with fallback to localStorage for migration)
+    async function saveItems(items) {
+        try {
+            // For bulk save, we'll save each item individually
+            // In a real app, you might want to implement bulk operations
+            for (const item of items) {
+                if (item.id) {
+                    await dbService.updateItem(item.id, item);
+                } else {
+                    await dbService.addItem(item);
+                }
+            }
+            // Update the table
+            await renderTable();
+        } catch (error) {
+            console.error('Error saving items to Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+            await renderTable();
+        }
     }
 
     // Render the table
-    function renderTable() {
-        const items = loadItems();
+    async function renderTable() {
+        const items = await loadItems();
         const tbody = document.querySelector('#inventoryTable tbody');
         tbody.innerHTML = '';
 
@@ -383,11 +411,11 @@
 
         // Add event listeners for delete buttons
         document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', async function() {
                 const itemId = this.getAttribute('data-id');
                 const itemName = this.getAttribute('data-name');
 
-                Swal.fire({
+                const result = await Swal.fire({
                     title: 'ยืนยันการลบ?',
                     text: `คุณกำลังจะลบรายการ "${itemName}" ข้อมูลนี้จะไม่สามารถกู้คืนได้`,
                     icon: 'warning',
@@ -397,20 +425,26 @@
                     confirmButtonText: 'ลบข้อมูล',
                     cancelButtonText: 'ยกเลิก',
                     customClass: { popup: 'rounded-4' }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Remove item from localStorage
-                        let items = loadItems();
-                        items = items.filter(item => item.id !== parseInt(itemId));
-                        saveItems(items);
-                    }
                 });
+
+                if (result.isConfirmed) {
+                    try {
+                        await dbService.deleteItem(parseInt(itemId));
+                        // Reload items and render table
+                        const items = await loadItems();
+                        renderTable();
+                        Swal.fire('ลบสำเร็จ!', 'รายการถูกลบเรียบร้อยแล้ว', 'success');
+                    } catch (error) {
+                        console.error('Error deleting item:', error);
+                        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบรายการได้', 'error');
+                    }
+                }
             });
         });
     }
 
     // Handle add item form submission
-    document.getElementById('addItemSubmitBtn').addEventListener('click', function(e) {
+    document.getElementById('addItemSubmitBtn').addEventListener('click', async function(e) {
         e.preventDefault(); // Prevent form submission
 
         const itemName = document.querySelector('#addItemModal [name="item_name"]').value.trim();
@@ -424,29 +458,33 @@
         }
 
         const newItem = {
-            id: Date.now(),
             item_name: itemName,
             total_qty: totalQty,
             unit: unit,
             responsible: responsible,
-            created_at: new Date().toLocaleDateString('th-TH') // Store as string for display
+            created_at: new Date().toISOString() // Store as ISO timestamp for proper database storage
         };
 
-        const items = loadItems();
-        items.push(newItem);
-        saveItems(items);
+        try {
+            await dbService.addItem(newItem);
+            // Reset form and close modal
+            document.querySelector('#addItemModal form').reset();
+            const addItemModalEl = document.getElementById('addItemModal');
+            const modal = bootstrap.Modal.getInstance(addItemModalEl);
+            modal.hide();
 
-        // Reset form and close modal
-        document.querySelector('#addItemModal form').reset();
-        const addItemModalEl = document.getElementById('addItemModal');
-        const modal = bootstrap.Modal.getInstance(addItemModalEl);
-        modal.hide();
-
-        Swal.fire('เพิ่มสำเร็จ!', 'รายการอุปกรณ์ถูกเพิ่มเรียบร้อยแล้ว', 'success');
+            Swal.fire('เพิ่มสำเร็จ!', 'รายการอุปกรณ์ถูกเพิ่มเรียบร้อยแล้ว', 'success');
+            // Reload and render table
+            const items = await loadItems();
+            renderTable();
+        } catch (error) {
+            console.error('Error adding item:', error);
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเพิ่มรายการได้', 'error');
+        }
     });
 
     // Handle edit item form submission
-    document.getElementById('editItemSubmitBtn').addEventListener('click', function(e) {
+    document.getElementById('editItemSubmitBtn').addEventListener('click', async function(e) {
         e.preventDefault(); // Prevent form submission
 
         const itemId = parseInt(document.getElementById('edit_id').value);
@@ -460,36 +498,36 @@
             return;
         }
 
-        const items = loadItems();
-        const itemIndex = items.findIndex(item => item.id === itemId);
-        if (itemIndex === -1) {
-            Swal.fire('ไม่พบรายการที่ต้องการแก้ไข', '', 'error');
-            return;
+        try {
+            await dbService.updateItem(itemId, {
+                item_name: itemName,
+                total_qty: totalQty,
+                unit: unit,
+                responsible: responsible
+                // Keep the original created_at
+            });
+
+            // Reset form and close modal
+            document.querySelector('#editItemModal form').reset();
+            const editItemModalEl = document.getElementById('editItemModal');
+            const modal = bootstrap.Modal.getInstance(editItemModalEl);
+            modal.hide();
+
+            Swal.fire('แก้ไขสำเร็จ!', 'รายการอุปกรณ์ถูกแก้ไขเรียบร้อยแล้ว', 'success');
+            // Reload and render table
+            const items = await loadItems();
+            renderTable();
+        } catch (error) {
+            console.error('Error updating item:', error);
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถแก้ไขรายการได้', 'error');
         }
-
-        // Update the item
-        items[itemIndex] = {
-            ...items[itemIndex],
-            item_name: itemName,
-            total_qty: totalQty,
-            unit: unit,
-            responsible: responsible,
-            // Keep the original created_at
-        };
-
-        saveItems(items);
-
-        // Reset form and close modal
-        document.querySelector('#editItemModal form').reset();
-        const editItemModalEl = document.getElementById('editItemModal');
-        const modal = bootstrap.Modal.getInstance(editItemModalEl);
-        modal.hide();
-
-        Swal.fire('แก้ไขสำเร็จ!', 'รายการอุปกรณ์ถูกแก้ไขเรียบร้อยแล้ว', 'success');
     });
 
     // Initial load
-    renderTable();
+    (async () => {
+        const items = await loadItems();
+        await renderTable();
+    })();
 </script>
 </body>
 </html>

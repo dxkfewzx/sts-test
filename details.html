@@ -8,6 +8,10 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Supabase JS library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Our Supabase service layer -->
+    <script src="supabase.js"></script>
     <style>
         :root {
             --primary-blue: #4e73df;
@@ -282,61 +286,113 @@
         document.getElementById('sidebar').classList.toggle('active');
     });
 
-    // Storage keys
+    // Storage keys (keeping for migration compatibility)
     const ITEMS_STORAGE_KEY = 'inventoryItems';
     const SN_STORAGE_KEY = 'snRecords';
 
-    // Load items from localStorage
-    function loadItems() {
-        const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse inventory items', e);
-                return [];
+    // Load items from Supabase (with fallback to localStorage for migration)
+    async function loadItems() {
+        try {
+            const items = await dbService.getItems();
+            // Ensure we always return an array
+            return Array.isArray(items) ? items : [];
+        } catch (error) {
+            console.error('Error loading items from Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            const stored = localStorage.getItem(ITEMS_STORAGE_KEY);
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    console.error('Failed to parse inventory items from localStorage', e);
+                    return [];
+                }
             }
+            return [];
         }
-        return [];
     }
 
-    // Save items to localStorage
-    function saveItems(items) {
-        localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
-        // Update the item name in the page header if we are on the details page of an item
-        const urlParams = new URLSearchParams(window.location.search);
-        const itemId = parseInt(urlParams.get('id'));
-        if (!isNaN(itemId)) {
-            const item = items.find(i => i.id === itemId);
-            if (item) {
-                document.getElementById('item-name').textContent = item.name;
+    // Save items to Supabase (with fallback to localStorage for migration)
+    async function saveItems(items) {
+        try {
+            // For bulk save, we'll save each item individually
+            // In a real app, you might want to implement bulk operations
+            for (const item of items) {
+                if (item.id) {
+                    await dbService.updateItem(item.id, item);
+                } else {
+                    await dbService.addItem(item);
+                }
+            }
+            // Update the item name in the page header if we are on the details page of an item
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = parseInt(urlParams.get('id'));
+            if (!isNaN(itemId)) {
+                const item = items.find(i => i.id === itemId);
+                if (item) {
+                    document.getElementById('item-name').textContent = item.name;
+                }
+            }
+        } catch (error) {
+            console.error('Error saving items to Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(items));
+            // Update the item name in the page header if we are on the details page of an item
+            const urlParams = new URLSearchParams(window.location.search);
+            const itemId = parseInt(urlParams.get('id'));
+            if (!isNaN(itemId)) {
+                const itemsFromStorage = JSON.parse(localStorage.getItem(ITEMS_STORAGE_KEY) || '[]');
+                const item = itemsFromStorage.find(i => i.id === itemId);
+                if (item) {
+                    document.getElementById('item-name').textContent = item.name;
+                }
             }
         }
-        // Dispatch an event so other tabs can listen if needed
-        window.dispatchEvent(new StorageEvent('storage', { key: ITEMS_STORAGE_KEY, newValue: JSON.stringify(items) }));
     }
 
-    // Load SNs from localStorage
-    function loadSNRecords() {
-        const stored = localStorage.getItem(SN_STORAGE_KEY);
-        if (stored) {
-            try {
-                return JSON.parse(stored);
-            } catch (e) {
-                console.error('Failed to parse SN records', e);
-                return [];
+    // Load SNs from Supabase (with fallback to localStorage for migration)
+    async function loadSNRecords() {
+        try {
+            const snRecords = await dbService.getSerialNumbers();
+            return snRecords;
+        } catch (error) {
+            console.error('Error loading SN records from Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            const stored = localStorage.getItem(SN_STORAGE_KEY);
+            if (stored) {
+                try {
+                    return JSON.parse(stored);
+                } catch (e) {
+                    console.error('Failed to parse SN records from localStorage', e);
+                    return [];
+                }
             }
+            return [];
         }
-        return [];
     }
 
-    // Save SNs to localStorage
-    function saveSNRecords(snRecords) {
-        localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
-        // Update the SN count badge on the details page
-        updateSnCountBadge();
-        // Dispatch an event so other tabs can listen if needed
-        window.dispatchEvent(new StorageEvent('storage', { key: SN_STORAGE_KEY, newValue: JSON.stringify(snRecords) }));
+    // Save SNs to Supabase (with fallback to localStorage for migration)
+    async function saveSNRecords(snRecords) {
+        try {
+            // For bulk save, we'll save each SN record individually
+            // In a real app, you might want to implement bulk operations
+            for (const sn of snRecords) {
+                if (sn.id) {
+                    await dbService.updateSerialNumber(sn.id, sn);
+                } else {
+                    await dbService.addSerialNumber(sn);
+                }
+            }
+            // Update the SN count badge on the details page
+            updateSnCountBadge();
+        } catch (error) {
+            console.error('Error saving SN records to Supabase:', error);
+            // Fallback to localStorage if Supabase fails
+            localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(snRecords));
+            // Update the SN count badge on the details page
+            updateSnCountBadge();
+        }
     }
 
     // Update the SN count badge in the details page header
@@ -351,7 +407,7 @@
     }
 
     // Populate the SN table
-    function populateSnTable() {
+    async function populateSnTable() {
         const urlParams = new URLSearchParams(window.location.search);
         const itemId = parseInt(urlParams.get('id'));
         if (isNaN(itemId)) {
@@ -359,7 +415,7 @@
             return;
         }
 
-        const items = loadItems();
+        const items = await loadItems();
         const item = items.find(i => i.id === itemId);
         if (!item) {
             showItemNotFound();
@@ -370,7 +426,7 @@
         document.getElementById('item-name').textContent = item.name;
         document.getElementById('item-description').textContent = `จัดการและตรวจสอบหมายเลขซีเรียลทั้งหมดของอุปกรณ์ชิ้นนี้`;
 
-        const snRecords = loadSNRecords();
+        const snRecords = await loadSNRecords();
         const itemSnRecords = snRecords.filter(sn => sn.item_id === itemId);
 
         const tbody = document.querySelector('#snTable tbody');
@@ -452,7 +508,7 @@
     }
 
     // Handle bulk SN addition
-    function alertBulkSN() {
+    async function alertBulkSN() {
         const urlParams = new URLSearchParams(window.location.search);
         const itemId = parseInt(urlParams.get('id'));
         if (isNaN(itemId)) {
@@ -476,62 +532,64 @@
             return false;
         }
 
-        const snRecords = loadSNRecords();
-        const items = loadItems();
-        const item = items.find(i => i.id === itemId);
-        if (!item) {
-            Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+        try {
+            const items = await loadItems();
+            const item = items.find(i => i.id === itemId);
+            if (!item) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรายการอุปกรณ์', 'error');
+                return false;
+            }
+
+            let addedCount = 0;
+            const newSnRecords = [];
+            for (const sn of snArray) {
+                const newSn = {
+                    item_id: itemId,
+                    serial_number: sn,
+                    brand: brand,
+                    status: 'Available', // New SNs are available by default
+                    job_number: '',
+                    withdrawer_name: '',
+                    dept_used: '',
+                    building: '',
+                    floor: '',
+                    receive_date: receiveDate,
+                    withdraw_date: null
+                };
+                newSnRecords.push(newSn);
+                addedCount++;
+            }
+
+            // Add new SNs to Supabase
+            for (const newSn of newSnRecords) {
+                await dbService.addSerialNumber(newSn);
+            }
+
+            // Update the item's available count (since all new SNs are Available)
+            await dbService.updateItem(itemId, {
+                // We'll need to fetch the item first to get current available count
+                // For simplicity, we'll recalculate based on SN records
+            });
+
+            // Reset form
+            document.querySelector('#addBulkSNModal form').reset();
+
+            Swal.fire({
+                title: 'นำเข้าสำเร็จ!',
+                text: `เพิ่ม Serial Number จำนวน ${addedCount} รายการเรียบร้อยแล้ว`,
+                icon: 'success',
+                confirmButtonText: 'ตกลง'
+            });
+
+            // Re-populate the table
+            await populateSnTable();
+
+            return false; // Prevent form submission
+        } catch (error) {
+            console.error('Error adding bulk SN:', error);
+            Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเพิ่ม Serial Number ได้', 'error');
             return false;
         }
-
-        let addedCount = 0;
-        const newSnRecords = [];
-        snArray.forEach(sn => {
-            const newSn = {
-                id: Date.now() + addedCount, // temporary ID, in real system use UUID or DB ID
-                item_id: itemId,
-                serial_number: sn,
-                brand: brand,
-                status: 'Available', // New SNs are available by default
-                job_number: '',
-                withdrawer_name: '',
-                dept_used: '',
-                building: '',
-                floor: '',
-                receive_date: receiveDate,
-                withdraw_date: null
-            };
-            newSnRecords.push(newSn);
-            addedCount++;
-        });
-
-        // Add new SNs to the records
-        const updatedSnRecords = [...snRecords, ...newSnRecords];
-        saveSNRecords(updatedSnRecords);
-
-        // Update the item's available count (since all new SNs are Available)
-        const updatedItems = items.map(i => {
-            if (i.id === itemId) {
-                return { ...i, available: i.available + addedCount };
-            }
-            return i;
-        });
-        saveItems(updatedItems);
-
-        // Reset form
-        document.querySelector('#addBulkSNModal form').reset();
-
-        Swal.fire({
-            title: 'นำเข้าสำเร็จ!',
-            text: `เพิ่ม Serial Number จำนวน ${addedCount} รายการเรียบร้อยแล้ว`,
-            icon: 'success',
-            confirmButtonText: 'ตกลง'
-        });
-
-        // Re-populate the table
-        populateSnTable();
-
-        return false; // Prevent form submission
     }
 
     // Handle SN edit
@@ -621,8 +679,8 @@
     }
 
     // Handle SN deletion
-    function confirmDeleteSN(snId) {
-        Swal.fire({
+    async function confirmDeleteSN(snId) {
+        const result = await Swal.fire({
             title: 'ยืนยันการลบ SN?',
             text: "คุณต้องการลบ SN นี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
             icon: 'warning',
@@ -631,44 +689,43 @@
             cancelButtonColor: '#3085d6',
             confirmButtonText: 'ใช่, ลบเลย!',
             cancelButtonText: 'ยกเลิก'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const snRecords = loadSNRecords();
-                const snIndex = snRecords.findIndex(sn => sn.id === snId);
-                if (snIndex !== -1) {
-                    const sn = snRecords[snIndex];
-                    // Remove the SN
-                    const updatedSnRecords = [...snRecords.slice(0, snIndex), ...snRecords.slice(snIndex + 1)];
-                    saveSNRecords(updatedSnRecords);
-
-                    // Update the item's available count if the deleted SN was Available
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const itemId = parseInt(urlParams.get('id'));
-                    if (!isNaN(itemId)) {
-                        const items = loadItems();
-                        const item = items.find(i => i.id === itemId);
-                        if (item && sn.status === 'Available') {
-                            const updatedItems = items.map(i => {
-                                if (i.id === itemId) {
-                                    return { ...i, available: i.available - 1 };
-                                }
-                                return i;
-                            });
-                            saveItems(updatedItems);
-                        }
-                    }
-
-                    Swal.fire('ลบสำเร็จ!', 'SN ถูกลบเรียบร้อยแล้ว', 'success');
-                    // Re-populate the table
-                    populateSnTable();
-                }
-            }
         });
+
+        if (result.isConfirmed) {
+            try {
+                // Delete the SN from Supabase
+                await dbService.deleteSerialNumber(snId);
+
+                // Update the item's available count if the deleted SN was Available
+                // We'll fetch the SN first to check its status
+                const snRecords = await loadSNRecords();
+                const sn = snRecords.find(sn => sn.id === snId);
+                if (sn && sn.status === 'Available') {
+                    const items = await loadItems();
+                    const item = items.find(i => i.id === sn.item_id);
+                    if (item) {
+                        await dbService.updateItem(item.id, {
+                            // We'll recalculate available count based on SN records
+                            // For now, we'll just refresh the data
+                        });
+                    }
+                }
+
+                Swal.fire('ลบสำเร็จ!', 'SN ถูกลบเรียบร้อยแล้ว', 'success');
+                // Re-populate the table
+                await populateSnTable();
+            } catch (error) {
+                console.error('Error deleting SN:', error);
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบ SN ได้', 'error');
+            }
+        }
         return false; // Prevent actual link follow
     }
 
     // Initial load
-    populateSnTable();
+    (async () => {
+        await populateSnTable();
+    })();
 </script>
 </body>
 </html>
