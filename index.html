@@ -131,7 +131,7 @@
 
                 <div class="mb-3">
                     <label class="small fw-bold mb-1">เลือกอุปกรณ์</label>
-                    <select name="item_id" id="item_select" class="form-select rounded-3 shadow-sm" required onchange="fetchSerialNumbers(this.value)">
+                    <select name="item_id" id="item_select" class="form-select rounded-3 shadow-sm" required>
                         <option value="">-- เลือกรายการ --</option>
                         <!-- PHP loop removed -->
                     </select>
@@ -345,12 +345,31 @@
                     <td class="text-warning fw-bold">${withdrawnCount}</td>
                     <td class="fw-bold">${remainingCount}</td>
                     <td>
-                        <a href="details.html?id=${item.id}" class="btn-action">
+                        <a href="details.html?id=${item.id}" class="btn-action me-1">
                             <i class="bi bi-search"></i>
                         </a>
+                        <button class="btn-action btn-withdraw" data-item-id="${item.id}" data-item-name="${item.item_name}">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+
+            // Add event listeners to withdrawal buttons
+            document.querySelectorAll('.btn-withdraw').forEach(button => {
+                button.addEventListener('click', function() {
+                    const itemId = this.getAttribute('data-item-id');
+                    const itemName = this.getAttribute('data-item-name');
+
+                    // Store the pre-selected item ID on the modal element
+                    const withdrawModalEl = document.getElementById('withdrawModal');
+                    withdrawModalEl.dataset.preSelectedItemId = itemId;
+
+                    // Show the modal
+                    const withdrawModal = new bootstrap.Modal(withdrawModalEl);
+                    withdrawModal.show();
+                });
             });
         } catch (error) {
             console.error('Error rendering dashboard:', error);
@@ -585,7 +604,7 @@
     });
 </script>
 <script>
-function fetchSerialNumbers(itemId) {
+async function fetchSerialNumbers(itemId) {
     console.log('fetchSerialNumbers called with itemId:', itemId, '(type:', typeof itemId, ')');
     const snSelect = document.getElementById('sn_select');
 
@@ -598,7 +617,7 @@ function fetchSerialNumbers(itemId) {
 
     try {
         // Get available serial numbers from client-side data
-        const availableSNs = getAvailableSerialNumbers(itemId);
+        const availableSNs = await getAvailableSerialNumbers(itemId);
         console.log('Available SNs for itemId', itemId, ':', availableSNs, '(length:', availableSNs.length, ')');
 
         snSelect.innerHTML = '<option value="">-- เลือก Serial Number --</option>';
@@ -621,23 +640,36 @@ function fetchSerialNumbers(itemId) {
 }
 </script>
 <script>
-document.getElementById('withdrawModal').addEventListener('show.bs.modal', function () {
+document.getElementById('withdrawModal').addEventListener('show.bs.modal', async function () {
     const itemSelect = document.getElementById('item_select');
     // Clear existing options
     itemSelect.innerHTML = '<option value="">-- เลือกรายการ --</option>';
-    const items = loadItems();
+    const items = await loadItems();
     items.forEach(item => {
         const opt = document.createElement('option');
         opt.value = item.id;
         opt.textContent = item.item_name;
         itemSelect.appendChild(opt);
     });
+
+    // Check if we have a pre-selected item from the withdrawal button
+    const preSelectedItemId = this.dataset.preSelectedItemId;
+    if (preSelectedItemId) {
+        // Set the selected item
+        itemSelect.value = preSelectedItemId;
+
+        // Trigger the onchange event to populate serial numbers
+        await fetchSerialNumbers(preSelectedItemId);
+
+        // Clear the pre-selected item data
+        delete this.dataset.preSelectedItemId;
+    }
 });
 </script>
 
 <script>
 // Handle withdraw form submission
-document.querySelector('#withdrawModal form').addEventListener('submit', function(e) {
+document.querySelector('#withdrawModal form').addEventListener('submit', async function(e) {
     e.preventDefault(); // Prevent form submission to process.php
 
     // Get form values
@@ -681,20 +713,15 @@ document.querySelector('#withdrawModal form').addEventListener('submit', functio
         return;
     }
 
-    // Load existing SN records
-    const snRecords = loadSNRecords();
-
-    // Create withdrawal record by updating the existing SN record - ensures data consistency with details.html
-    // Find the existing SN record for this item and serial number
-    const existingSnIndex = snRecords.findIndex(sn =>
+    // Find the existing SN record for this item and serial number using Supabase
+    const snRecords = await dbService.getSerialNumbers();
+    const existingSn = snRecords.find(sn =>
         sn.item_id === itemId && sn.serial_number === serialNumber
     );
 
-    let newWithdrawal;
-    if (existingSnIndex !== -1) {
-        // Found existing SN record - update it to withdrawn status
-        const existingSn = snRecords[existingSnIndex];
-        newWithdrawal = {
+    if (existingSn) {
+        // Update the existing SN record to withdrawn status
+        const updatedSn = {
             ...existingSn,
             status: 'Withdrawn',
             job_number: jobNumber,
@@ -704,13 +731,19 @@ document.querySelector('#withdrawModal form').addEventListener('submit', functio
             floor: floorInfo || '',
             receive_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             withdraw_date: new Date().toISOString() // Full timestamp for withdrawal
-            // Note: id, item_id, serial_number, brand, etc. are preserved from existingSn
         };
+
+        try {
+            await dbService.updateSerialNumber(existingSn.id, updatedSn);
+        } catch (error) {
+            console.error('Error updating serial number:', error);
+            Swal.fire('เกิดข้อผิดพลาด!', 'ไม่สามารถอัปเดตข้อมูลหมายเลขเครื่องได้', 'error');
+            return;
+        }
     } else {
         // Fallback: create new record (shouldn't happen in normal operation)
         console.warn('No existing SN record found for itemId:', itemId, 'serialNumber:', serialNumber);
-        newWithdrawal = {
-            id: Date.now(), // Simple ID generation
+        const newSn = {
             item_id: itemId,
             serial_number: serialNumber,
             brand: '', // Will be empty initially
@@ -723,19 +756,15 @@ document.querySelector('#withdrawModal form').addEventListener('submit', functio
             receive_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
             withdraw_date: new Date().toISOString() // Full timestamp
         };
-    }
 
-    // Add to records and save
-    let updatedRecords;
-    if (existingSnIndex !== -1) {
-        // Replace the existing record with the updated one
-        updatedRecords = [...snRecords];
-        updatedRecords[existingSnIndex] = newWithdrawal;
-    } else {
-        // Add new record (fallback case)
-        updatedRecords = [...snRecords, newWithdrawal];
+        try {
+            await dbService.addSerialNumber(newSn);
+        } catch (error) {
+            console.error('Error adding serial number:', error);
+            Swal.fire('เกิดข้อผิดพลาด!', 'ไม่สามารถเพิ่มข้อมูลหมายเลขเครื่องได้', 'error');
+            return;
+        }
     }
-    localStorage.setItem(SN_STORAGE_KEY, JSON.stringify(updatedRecords));
 
     // Close modal and show success
     const withdrawModalEl = document.getElementById('withdrawModal');
